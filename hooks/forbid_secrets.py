@@ -9,6 +9,7 @@ from __future__ import print_function
 import argparse
 import re
 import sys
+import subprocess
 from encrypt_decrypt_sops import encrypt_file
 import yaml
 
@@ -63,10 +64,42 @@ def contains_secret(filename):
                 return True
     return False
 
+def is_sops_installed():
+    """
+    Checks if SOPS is installed by attempting to call it.
+    """
+    try:
+        subprocess.run(['sops', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+def prompt_install_sops():
+    """
+    Prompts the user to install SOPS if it is not installed.
+    """
+    print("SOPS is not installed. It is required to encrypt secrets.")
+    approval = input("Would you like to install SOPS now? [y/N]: ").strip().lower()
+    if approval == 'y':
+        try:
+            subprocess.run(['brew', 'install', 'sops'], check=True)
+            print("SOPS has been successfully installed.")
+            return True
+        except subprocess.CalledProcessError as e:
+            print("Failed to install SOPS:", e)
+            return False
+    else:
+        print("SOPS installation was not approved. Exiting.")
+        return False
+
 def main(argv=None):
     """
     Main function that parses arguments and checks each file for secrets and encryption.
     """
+    if not is_sops_installed():
+        if not prompt_install_sops():
+            return 1
+
     global CREATION_RULES_PATH_REGEX
     CREATION_RULES_PATH_REGEX = load_creation_rules_path_regex()
 
