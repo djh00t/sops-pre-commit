@@ -31,6 +31,23 @@ The hook can be configured by modifying the `.pre-commit-config.yaml` file. You 
 
 To install this pre-commit hook, you need to have pre-commit and SOPS installed on your system.
 
+## Supported Hooks
+
+This pre-commit plugin provides several hooks to check for different types of secrets. Below is a list of available hook ids and their descriptions:
+
+- `aws-access-key-id`: Checks for AWS Access Key IDs that might be hardcoded in files.
+- `aws-secret-access-key`: Checks for AWS Secret Access Keys that might be hardcoded in files.
+- `rsa-private-key`: Checks for RSA private keys that might be hardcoded in files.
+- `ssh-private-key`: Checks for SSH private keys that might be hardcoded in files.
+- `github-access-token`: Checks for GitHub access tokens that might be hardcoded in files.
+- `generic-api-key`: Checks for generic API keys that might be hardcoded in files.
+- `gcp-api-key`: Checks for Google Cloud Platform API keys that might be hardcoded in files.
+- `jwt`: Checks for JSON Web Tokens (JWT) that might be hardcoded in files.
+- `slack-webhook-url`: Checks for Slack webhook URLs that might be hardcoded in files.
+- `google-oauth-client-secret`: Checks for Google OAuth client secrets that might be hardcoded in files.
+
+To configure a hook, add the corresponding `id` to your `.pre-commit-config.yaml` file and specify any additional arguments if needed.
+
 1. Install pre-commit:
    ```
    pip install pre-commit
@@ -46,6 +63,7 @@ To install this pre-commit hook, you need to have pre-commit and SOPS installed 
 
 Now pre-commit will run automatically on `git commit`!
 
+## Requirements
 Sops [pre-commit](https://pre-commit.com/) hook.
 
 * Check for unencrypted Kubernetes secrets in manifest files.
