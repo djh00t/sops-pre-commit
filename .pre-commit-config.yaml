@@ -11,7 +11,16 @@ repos:
 - repo: https://github.com/djh00t/sops-pre-commit
   rev: v2.1.1
   hooks:
-    - id: forbid-secrets
+    - id: aws-access-key-id
+    - id: aws-secret-access-key
+    - id: rsa-private-key
+    - id: ssh-private-key
+    - id: github-access-token
+    - id: generic-api-key
+    - id: gcp-api-key
+    - id: jwt
+    - id: slack-webhook-url
+    - id: google-oauth-client-secret
       exclude: (k8s\/apps\/group-00\/kube-vip\/rbac.yaml|tmpl\/.*.sops\.ya?ml|knative\-operator\.ya?ml|tekton\-pipelines\.ya?ml)
 - repo: https://github.com/adrienverge/yamllint
   rev: v1.28.0

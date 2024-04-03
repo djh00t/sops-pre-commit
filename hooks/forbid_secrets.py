@@ -19,17 +19,47 @@ KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
 
 CREATION_RULES_PATH_REGEX = None  # This will be set after reading from .sops.yaml
 
-SECRET_PATTERNS = {
-    'AWS Access Key ID': r'AKIA[0-9A-Z]{16}',
-    'AWS Secret Access Key': r'(?i)aws(.{0,20})?['"\s]?([0-9a-zA-Z/+]{40})',
-    'RSA Private Key': r'-----BEGIN RSA PRIVATE KEY-----',
-    'SSH Private Key': r'-----BEGIN (EC|OPENSSH|DSA|RSA) PRIVATE KEY-----',
-    'GitHub Personal Access Token': r'ghp_[0-9a-zA-Z]{36}',
-    'Generic API Key': r'(?i)api(_|-)?key['"\s]?[:=]['"\s]?[0-9a-zA-Z]{32,}',
-    'Google Cloud Platform API Key': r'AIza[0-9A-Za-z\\-_]{35}',
-    'JSON Web Token (JWT)': r'eyJ[A-Za-z0-9-_=]+\.eyJ[A-Za-z0-9-_=]+\.[A-Za-z0-9-_.+/=]*',
-    'Slack Webhook URL': r'https://hooks.slack.com/services/T[A-Z0-9]{8}/B[A-Z0-9]{8}/[a-zA-Z0-9]{24}',
-    'Google OAuth 2.0 Client Secret': r'(?i)"client_secret":"[a-zA-Z0-9-_]{24}',
+def check_aws_access_key_id(content):
+    return re.search(r'AKIA[0-9A-Z]{16}', content)
+
+def check_aws_secret_access_key(content):
+    return re.search(r'(?i)aws(.{0,20})?['"\s]?([0-9a-zA-Z/+]{40})', content)
+
+def check_rsa_private_key(content):
+    return re.search(r'-----BEGIN RSA PRIVATE KEY-----', content)
+
+def check_ssh_private_key(content):
+    return re.search(r'-----BEGIN (EC|OPENSSH|DSA|RSA) PRIVATE KEY-----', content)
+
+def check_github_access_token(content):
+    return re.search(r'ghp_[0-9a-zA-Z]{36}', content)
+
+def check_generic_api_key(content):
+    return re.search(r'(?i)api(_|-)?key['"\s]?[:=]['"\s]?[0-9a-zA-Z]{32,}', content)
+
+def check_gcp_api_key(content):
+    return re.search(r'AIza[0-9A-Za-z\\-_]{35}', content)
+
+def check_jwt(content):
+    return re.search(r'eyJ[A-Za-z0-9-_=]+\.eyJ[A-Za-z0-9-_=]+\.[A-Za-z0-9-_.+/=]*', content)
+
+def check_slack_webhook_url(content):
+    return re.search(r'https://hooks.slack.com/services/T[A-Z0-9]{8}/B[A-Z0-9]{8}/[a-zA-Z0-9]{24}', content)
+
+def check_google_oauth_client_secret(content):
+    return re.search(r'(?i)"client_secret":"[a-zA-Z0-9-_]{24}', content)
+
+SECRET_CHECKS = {
+    'aws-access-key-id': check_aws_access_key_id,
+    'aws-secret-access-key': check_aws_secret_access_key,
+    'rsa-private-key': check_rsa_private_key,
+    'ssh-private-key': check_ssh_private_key,
+    'github-access-token': check_github_access_token,
+    'generic-api-key': check_generic_api_key,
+    'gcp-api-key': check_gcp_api_key,
+    'jwt': check_jwt,
+    'slack-webhook-url': check_slack_webhook_url,
+    'google-oauth-client-secret': check_google_oauth_client_secret,
 }
 EXCLUDE_PATTERNS = []
 
@@ -66,15 +96,19 @@ def is_kubernetes_secret(data):
 def contains_secret(filename):
     """
     Checks if the given filename contains an unencrypted Kubernetes secret by parsing the YAML content.
+def contains_secret(filename, hook_id):
+    """
+    Checks if the given filename contains an unencrypted secret by searching for patterns.
     """
     with open(filename, 'r') as file:
         file_content = file.read()
 
-    for secret_type, pattern in SECRET_PATTERNS.items():
-        if re.search(pattern, file_content):
-            print(f"Detected {secret_type} in file: {filename}")
-            encrypt_file(filename)
-            return True
+    check_function = SECRET_CHECKS.get(hook_id)
+    if check_function and check_function(file_content):
+        print(f"Detected {hook_id.replace('-', ' ').title()} in file: {filename}")
+        encrypt_file(filename)
+        return True
+    return False
 
     try:
         with open(filename, 'r') as file:
