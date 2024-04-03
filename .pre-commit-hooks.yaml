@@ -1,6 +1,6 @@
 - id: forbid-secrets
-  name: Check for unencrypted Kubernetes secrets in manifests
-  description: "Forbid files containing unencrypted Kubernetes secrets to be commited"
+  name: Check for unencrypted Kubernetes secrets in manifests and SOPS encrypt them
+  description: "Find files containing unencrypted Kubernetes secrets and SOPS encrypt them"
   entry: forbid_secrets
   language: python
   files: ((^|/)*.(ya?ml)$)

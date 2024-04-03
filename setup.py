@@ -2,12 +2,12 @@ from setuptools import find_packages, setup
 
 setup(
     name='sops-pre-commit',
-    description='Check for unencrypted Kubernetes secrets in manifest files',
-    url='https://github.com/onedr0p/sops-pre-commit',
-    version='2.1.0',
+    description='Check for unencrypted Kubernetes secrets in manifest files and encrypt them before allowing git to push. Forked from https://github.com/onedr0p/sops-pre-commit',
+    url='https://github.com/djh00t/sops-pre-commit',
+    version='1.0.0',
 
-    author='Devin Buhl',
-    author_email='devin.kray@gmail.com',
+    author='David Hooton',
+    author_email='sops-pre-commit+david@hooton.org',
 
     platforms='linux',
     classifiers=[
