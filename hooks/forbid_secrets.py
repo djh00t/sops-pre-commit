@@ -15,6 +15,15 @@ SOPS_REGEX = r"ENC.AES256"
 KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
 
 
+CREATION_RULES_PATH_REGEX = r"your_path_regex_here"  # Replace with your actual regex
+
+def is_encrypted_with_sops(filename):
+    """
+    Checks if the given filename is encrypted with SOPS.
+    """
+    with open(filename, 'r') as file:
+        return SOPS_REGEX in file.read()
+
 def contains_secret(filename):
     """
     Checks if the given filename contains an unencrypted Kubernetes secret.
@@ -24,6 +33,12 @@ def contains_secret(filename):
         kubernetes_secret = re.findall(
             SECRET_REGEX, lines, flags=re.IGNORECASE | re.MULTILINE
         )
+        # Check if the file matches the creation rules path regex and is not encrypted
+        if re.search(CREATION_RULES_PATH_REGEX, filename) and not is_encrypted_with_sops(filename):
+            print(
+                "File matches creation rules path regex but is not encrypted with SOPS: {0}".format(filename)
+            )
+            return True
         if kubernetes_secret:
             ignore_secret = re.findall(
                 SOPS_REGEX, lines, flags=re.IGNORECASE | re.MULTILINE
@@ -33,6 +48,9 @@ def contains_secret(filename):
     return False
 
 def main(argv=None):
+    """
+    Main function that parses arguments and checks each file for secrets and encryption.
+    """
     """
     Main function that parses arguments and checks each file for secrets.
     """
