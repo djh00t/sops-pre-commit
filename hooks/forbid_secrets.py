@@ -5,7 +5,7 @@ encrypted with SOPS or marked for deletion in Kustomize patches. If an unencrypt
 is found, it exits with a non-zero status code to block the commit.
 """
 from __future__ import print_function
-
+import os
 import argparse
 import yaml
 import sys
@@ -18,6 +18,16 @@ SOPS_REGEX = r"ENC.AES256"
 KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
 
 CREATION_RULES_PATH_REGEX = None  # This will be set after reading from .sops.yaml
+
+DEBUG_LEVEL = 0  # Set the desired debug level here, 0 for no debug output
+
+def debug(level, message):
+    """
+    Prints a debug message with a given level.
+    """
+    if level <= DEBUG_LEVEL:
+        print("DEBUG: {}".format(message))
+
 
 def check_aws_access_key_id(content):
     return re.search(r'AKIA[0-9A-Z]{16}', content)
@@ -94,8 +104,7 @@ def is_kubernetes_secret(data):
     """
     return data.get('kind', '').lower() == 'secret' and data.get('apiVersion', '').startswith('v1')
 
-import os
-import subprocess
+
 
 root_dir = subprocess.getoutput('git rev-parse --show-toplevel')
 key_age_public = open(os.path.join(root_dir, '.age.pub')).read().strip()
@@ -225,28 +234,4 @@ if __name__ == "__main__":
     If this script is executed as the main module, start the main function.
     """
     sys.exit(main(sys.argv[1:]))
-def debug(level, message):
-    """
-    Prints a debug message with a given level.
-    """
-    if level <= DEBUG_LEVEL:
-        print(f"DEBUG: {message}")
-
-DEBUG_LEVEL = 0  # Set the desired debug level here, 0 for no debug output
-
-def debug(level, message):
-    """
-    Prints a debug message with a given level.
-    """
-    if level <= DEBUG_LEVEL:
-        print("DEBUG: {}".format(message))
-
-DEBUG_LEVEL = 0  # Set the desired debug level here, 0 for no debug output
-
-def debug(level, message):
-    """
-    Prints a debug message with a given level.
-    """
-    if level <= DEBUG_LEVEL:
-        print("DEBUG: {}".format(message))
 

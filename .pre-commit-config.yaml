@@ -66,13 +66,6 @@ repos:
       entry: python /Users/djh/work/src/github.com/djh00t/sops-pre-commit/hooks/forbid_secrets.py --hook-id kubernetes-secret
       language: system
       files: ((^|/)*.(ya?ml)$)
-    # Add similar entries for other hooks as needed
-  # ... (other repositories and hooks)
-    - id: kubernetes-secret
-      name: Check for unencrypted Kubernetes secrets
-      entry: python /Users/djh/work/src/github.com/djh00t/sops-pre-commit/hooks/forbid_secrets.py --hook-id kubernetes-secret
-      language: system
-      files: ((^|/)*.(ya?ml)$)
 - repo: https://github.com/adrienverge/yamllint
   rev: v1.28.0
   hooks:
