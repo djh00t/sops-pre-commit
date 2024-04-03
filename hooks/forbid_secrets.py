@@ -82,7 +82,7 @@ def prompt_install_sops():
     approval = input("Would you like to install SOPS now? [y/N]: ").strip().lower()
     if approval == 'y':
         try:
-            subprocess.run([sys.executable, '-m', 'pip', 'install', 'python-sops'], check=True)
+            subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', 'requirements.txt'], check=True)
             print("SOPS has been successfully installed.")
             return True
         except subprocess.CalledProcessError as e:
