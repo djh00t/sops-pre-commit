@@ -23,6 +23,7 @@ import yaml
 root_dir = subprocess.getoutput('git rev-parse --show-toplevel')
 key_age_public = open(os.path.join(root_dir, '.age.pub')).read().strip()
 key_age_private = open(os.path.join(root_dir, 'age.agekey')).readlines()[1].strip()
+debug_level = 2  # Default debug level set to show warnings and errors
 
 def debug(debug_msg_level, *debug_msg):
     """
@@ -136,7 +137,7 @@ def main(files_to_process):
     args = parser.parse_args()
 
     global debug_level
-    debug_level = 3 if args.debug else 2
+    debug_level = 3 if args.debug else debug_level  # Use the module level debug_level if not overridden by args.debug
 
     global key_age_public
     global key_age_private
