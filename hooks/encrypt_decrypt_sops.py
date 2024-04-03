@@ -67,7 +67,12 @@ def encrypt_file(file_path):
     if not check_if_encrypted(file_path):
         debug(0, "File Status:   DECRYPTED")
         debug(0, "Action:        ENCRYPTING")
-        subprocess.run(['sops', '--encrypt', '--in-place', file_path], check=True)
+        try:
+            subprocess.run(['sops', '--encrypt', '--in-place', file_path], check=True)
+        except subprocess.CalledProcessError as e:
+            debug(2, "Failed to encrypt file:", file_path)
+            debug(2, "Error:", str(e))
+            raise
         debug(0, "File Status:   ENCRYPTED")
     else:
         debug(0, "File Status:   ENCRYPTED")
