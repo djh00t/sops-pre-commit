@@ -1,61 +1,55 @@
-- id: forbid-secrets
-  name: Check for unencrypted Kubernetes secrets in manifests and SOPS encrypt them
-  description: "Find files containing unencrypted Kubernetes secrets and SOPS encrypt them"
-  entry: forbid_secrets
-  language: python
-  files: ((^|/)*.(ya?ml)$)
 - id: aws-access-key-id
   name: Check for AWS Access Key IDs
   entry: forbid_secrets --hook-id aws-access-key-id
   language: python
-  files: \.(yaml|yml)$
+  files: ((^|/)*.(ya?ml)$)
 - id: aws-secret-access-key
   name: Check for AWS Secret Access Keys
   entry: forbid_secrets --hook-id aws-secret-access-key
   language: python
-  files: \.(yaml|yml)$
+  files: ((^|/)*.(ya?ml)$)
 - id: gcp-api-key
   name: Check for GCP API Keys
   entry: forbid_secrets --hook-id gcp-api-key
   language: python
-  files: \.(yaml|yml)$
+  files: ((^|/)*.(ya?ml)$)
 - id: generic-api-key
   name: Check for Generic API Keys
   entry: forbid_secrets --hook-id generic-api-key
   language: python
-  files: \.(yaml|yml)$
+  files: ((^|/)*.(ya?ml)$)
 - id: github-access-token
   name: Check for GitHub Access Tokens
   entry: forbid_secrets --hook-id github-access-token
   language: python
-  files: \.(yaml|yml)$
+  files: ((^|/)*.(ya?ml)$)
 - id: google-oauth-client-secret
   name: Check for Google OAuth Client Secrets
   entry: forbid_secrets --hook-id google-oauth-client-secret
   language: python
-  files: \.(yaml|yml)$
+  files: ((^|/)*.(ya?ml)$)
 - id: jwt
   name: Check for JSON Web Tokens (JWT)
   entry: forbid_secrets --hook-id jwt
   language: python
-  files: \.(yaml|yml)$
+  files: ((^|/)*.(ya?ml)$)
 - id: kubernetes-secret
   name: Check for unencrypted Kubernetes secrets
   entry: forbid_secrets --hook-id kubernetes-secret
   language: python
-  files: \.(yaml|yml)$
+  files: ((^|/)*.(ya?ml)$)
 - id: rsa-private-key
   name: Check for RSA Private Keys
   entry: forbid_secrets --hook-id rsa-private-key
   language: python
-  files: \.(yaml|yml)$
+  files: ((^|/)*.(ya?ml)$)
 - id: slack-webhook-url
   name: Check for Slack Webhook URLs
   entry: forbid_secrets --hook-id slack-webhook-url
   language: python
-  files: \.(yaml|yml)$
+  files: ((^|/)*.(ya?ml)$)
 - id: ssh-private-key
   name: Check for SSH Private Keys
   entry: forbid_secrets --hook-id ssh-private-key
   language: python
-  files: \.(yaml|yml)$
+  files: ((^|/)*.(ya?ml)$)
