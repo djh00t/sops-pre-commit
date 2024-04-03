@@ -95,7 +95,7 @@ if __name__ == "__main__":
     """
     If this script is executed as the main module, start the main function.
     """
-    sys.exit(main(sys.argv[1:]))
+    sys.exit(main())
 
 SOPS_REGEX = r"ENC.AES256"
 KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
@@ -267,53 +267,9 @@ def prompt_install_sops():
         print("SOPS installation was not approved. Exiting.")
         return False
 
-def main(argv=None):
-    """
-    Main function that parses arguments and checks each file for secrets and encryption.
-    """
-    global EXCLUDE_PATTERNS
-    secrets_detected = False
-    if not is_sops_installed():
-        if not prompt_install_sops():
-            return 1
-
-    global CREATION_RULES_PATH_REGEX
-    CREATION_RULES_PATH_REGEX = load_creation_rules_path_regex()
-
-    """
-    Main function that parses arguments and checks each file for secrets.
-    """
-    parser = argparse.ArgumentParser(description="Checks for unencrypted Kubernetes secrets.")
-    parser.add_argument("filenames", nargs="*", help="Filenames to check.")
-    parser.add_argument("--hook-id", help="Identifier of the hook.", required=True)
-    parser.add_argument("--exclude", nargs="*", help="Regex patterns for files to exclude from checks.", default=[])
-    args = parser.parse_args(argv)
-
-    EXCLUDE_PATTERNS = args.exclude
-    hook_id = args.hook_id
-
-    files_with_secrets = []
-    if hook_id == 'kubernetes-secret':
-        files_with_secrets = [f for f in args.filenames if not is_excluded(f, EXCLUDE_PATTERNS) and check_kubernetes_secret_file(f)]
-    else:
-        files_with_secrets = [f for f in args.filenames if not is_excluded(f, EXCLUDE_PATTERNS) and contains_secret(f, hook_id)]
-
-    return_code = 0
-    for file_with_secrets in files_with_secrets:
-        secrets_detected = True
-        print(
-            "Unencrypted Kubernetes secret detected in file: {0}".format(
-                file_with_secrets
-            )
-        )
-        return_code = 1
-    if secrets_detected:
-        print("Secrets were detected and encrypted.")
-    return return_code
-
 
 if __name__ == "__main__":
     """
     If this script is executed as the main module, start the main function.
     """
-    sys.exit(main(sys.argv[1:]))
+    sys.exit(main())
