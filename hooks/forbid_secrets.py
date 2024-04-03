@@ -35,7 +35,7 @@ def check_github_access_token(content):
     return re.search(r'ghp_[0-9a-zA-Z]{36}', content)
 
 def check_generic_api_key(content):
-    return re.search(r'(?i)api(_|-)?key['"\s]?[:=]['"\s]?[0-9a-zA-Z]{32,}', content)
+    return re.search(r'(?i)api(_|-)?key[\'"\\s]?[:=][\'"\\s]?[0-9a-zA-Z]{32,}', content)
 
 def check_gcp_api_key(content):
     return re.search(r'AIza[0-9A-Za-z\\-_]{35}', content)
