@@ -8,9 +8,16 @@ repos:
   - id: check-merge-conflict
   - id: detect-private-key
   - id: trailing-whitespace
-- repo: https://github.com/djh00t/sops-pre-commit
+- repo: local
   rev: v1.0.0
   hooks:
+    - id: kubernetes-secret
+      name: Check for unencrypted Kubernetes secrets
+      entry: python /Users/djh/work/src/github.com/djh00t/sops-pre-commit/hooks/forbid_secrets.py --hook-id kubernetes-secret
+      language: system
+      files: ((^|/)*.(ya?ml)$)
+    # Add similar entries for other hooks as needed
+  # ... (other repositories and hooks)
     - id: kubernetes-secret
     - id: aws-access-key-id
     - id: aws-secret-access-key
