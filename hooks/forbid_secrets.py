@@ -64,20 +64,6 @@ def check_if_encrypted(file_path):
         content = file.read()
     return '- recipient: ' + key_age_public in content
 
-def debug(debug_msg_level, *debug_msg):
-    """
-    Outputs debug messages to the console with varying levels of severity.
-    """
-    debug_levels = ['INFO', 'WARN', 'ERROR', 'DEBUG', 'TRACE', 'FATAL']
-    color_codes = ['\033[1;32m', '\033[1;33m', '\033[1;31m', '\033[1;34m', '\033[1;38;5;208m', '\033[1;3;31m']
-    reset_color = '\033[0m'
-    current_date = datetime.now().strftime('%b %d %H:%M:%S')
-    hostname = socket.gethostname()
-    if DEBUG_LEVEL >= debug_msg_level or debug_msg_level == 5:
-        color = color_codes[debug_msg_level]
-        level_str = debug_levels[debug_msg_level]
-        print(f"{current_date} {hostname} {color}{level_str}:{reset_color}\t{color}{' '.join(debug_msg)}{reset_color}")
-
 def main(argv=None):
     """
     Main function that parses arguments and checks each file for secrets and encryption.
