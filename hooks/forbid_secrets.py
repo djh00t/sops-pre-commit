@@ -9,6 +9,7 @@ from __future__ import print_function
 import argparse
 import re
 import sys
+from encrypt_decrypt_sops import encrypt_file
 import yaml
 
 SECRET_REGEX = r"^kind:\ssecret$"
@@ -51,12 +52,14 @@ def contains_secret(filename):
             print(
                 "File matches creation rules path regex but is not encrypted with SOPS: {0}".format(filename)
             )
+            encrypt_file(filename)
             return True
         if kubernetes_secret:
             ignore_secret = re.findall(
                 SOPS_REGEX, lines, flags=re.IGNORECASE | re.MULTILINE
             ) or re.findall(KUSTOMIZE_REGEX, lines, flags=re.IGNORECASE | re.MULTILINE)
             if not ignore_secret:
+                encrypt_file(filename)
                 return True
     return False
 
