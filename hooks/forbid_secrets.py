@@ -1,3 +1,9 @@
+"""
+This script is a pre-commit hook that checks for unencrypted Kubernetes secrets in files.
+It uses regular expressions to identify secret definitions and ignores them if they are
+encrypted with SOPS or marked for deletion in Kustomize patches. If an unencrypted secret
+is found, it exits with a non-zero status code to block the commit.
+"""
 from __future__ import print_function
 
 import argparse
@@ -8,7 +14,11 @@ SECRET_REGEX = r"^kind:\ssecret$"
 SOPS_REGEX = r"ENC.AES256"
 KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
 
+
 def contains_secret(filename):
+    """
+    Checks if the given filename contains an unencrypted Kubernetes secret.
+    """
     with open(filename, mode="r") as file_checked:
         lines = file_checked.read()
         kubernetes_secret = re.findall(
@@ -23,6 +33,9 @@ def contains_secret(filename):
     return False
 
 def main(argv=None):
+    """
+    Main function that parses arguments and checks each file for secrets.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("filenames", nargs="*", help="filenames to check")
     args = parser.parse_args(argv)
@@ -39,4 +52,7 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
+    """
+    If this script is executed as the main module, start the main function.
+    """
     sys.exit(main(sys.argv[1:]))
