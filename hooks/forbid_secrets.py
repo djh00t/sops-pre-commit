@@ -9,13 +9,26 @@ from __future__ import print_function
 import argparse
 import re
 import sys
+import yaml
 
 SECRET_REGEX = r"^kind:\ssecret$"
 SOPS_REGEX = r"ENC.AES256"
 KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
 
 
-CREATION_RULES_PATH_REGEX = r"your_path_regex_here"  # Replace with your actual regex
+CREATION_RULES_PATH_REGEX = None  # This will be set after reading from .sops.yaml
+
+def load_creation_rules_path_regex():
+    """
+    Loads the path_regex from the .sops.yaml file.
+    """
+    with open('.sops.yaml', 'r') as sops_config_file:
+        sops_config = yaml.safe_load(sops_config_file)
+        for rule in sops_config.get('creation_rules', []):
+            path_regex = rule.get('path_regex')
+            if path_regex:
+                return path_regex
+        raise ValueError("No path_regex found in .sops.yaml creation_rules.")
 
 def is_encrypted_with_sops(filename):
     """
@@ -51,6 +64,9 @@ def main(argv=None):
     """
     Main function that parses arguments and checks each file for secrets and encryption.
     """
+    global CREATION_RULES_PATH_REGEX
+    CREATION_RULES_PATH_REGEX = load_creation_rules_path_regex()
+
     """
     Main function that parses arguments and checks each file for secrets.
     """
