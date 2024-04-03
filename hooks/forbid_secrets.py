@@ -23,7 +23,7 @@ def check_aws_access_key_id(content):
     return re.search(r'AKIA[0-9A-Z]{16}', content)
 
 def check_aws_secret_access_key(content):
-    return re.search(r'(?i)aws(.{0,20})?['"\s]?([0-9a-zA-Z/+]{40})', content)
+    return re.search(r'(?i)aws(.{0,20})?[\'"\s]?([0-9a-zA-Z/+]{40})', content)
 
 def check_rsa_private_key(content):
     return re.search(r'-----BEGIN RSA PRIVATE KEY-----', content)
