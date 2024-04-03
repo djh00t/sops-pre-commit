@@ -29,7 +29,7 @@ def check_rsa_private_key(content):
     return re.search(r'-----BEGIN RSA PRIVATE KEY-----', content)
 
 def check_ssh_private_key(content):
-    return re.search(r'-----BEGIN (EC|OPENSSH|DSA|RSA) PRIVATE KEY-----.+-----END (EC|OPENSSH|DSA|RSA) PRIVATE KEY-----', content, re.DOTALL)
+    return re.search(r'-----BEGIN (EC|OPENSSH|DSA|RSA) PRIVATE KEY-----\s*([A-Za-z0-9+/=\s]+)\s*-----END (EC|OPENSSH|DSA|RSA) PRIVATE KEY-----', content, re.DOTALL)
 
 def check_github_access_token(content):
     return re.search(r'ghp_[0-9a-zA-Z]{36}', content)
