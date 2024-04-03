@@ -132,6 +132,10 @@ def contains_secret(filename, hook_id):
     """
     Checks if the given filename contains an unencrypted secret by searching for patterns.
     """
+    if check_if_encrypted(filename):
+        debug(0, f"File is already encrypted with SOPS: {filename}")
+        return False
+
     with open(filename, 'r') as file:
         file_content = file.read()
 
