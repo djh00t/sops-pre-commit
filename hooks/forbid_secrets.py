@@ -5,13 +5,13 @@ encrypted with SOPS or marked for deletion in Kustomize patches. If an unencrypt
 is found, it exits with a non-zero status code to block the commit.
 """
 from __future__ import print_function
-SOPS_REGEX = r"ENC.AES256"
-KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
-DEBUG_LEVEL = 0  # Set the desired debug level here, 0 for no debug output
-EXCLUDE_PATTERNS = []
-root_dir = subprocess.getoutput('git rev-parse --show-toplevel')
-key_age_public = open(os.path.join(root_dir, '.age.pub')).read().strip()
-CREATION_RULES_PATH_REGEX = None  # This will be set after reading from .sops.yaml
+import os
+import argparse
+import yaml
+import sys
+import subprocess
+import re
+from encrypt_decrypt_sops import encrypt_file
 
 SOPS_REGEX = r"ENC.AES256"
 KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
@@ -20,87 +20,6 @@ CREATION_RULES_PATH_REGEX = None  # This will be set after reading from .sops.ya
 
 root_dir = subprocess.getoutput('git rev-parse --show-toplevel')
 key_age_public = open(os.path.join(root_dir, '.age.pub')).read().strip()
-
-DEBUG_LEVEL = 0  # Set the desired debug level here, 0 for no debug output
-
-def debug(level, message):
-    """
-    Prints a debug message with a given level.
-    """
-    if level <= DEBUG_LEVEL:
-        print("DEBUG: {}".format(message))
-
-def encrypt_file_if_needed(file_path):
-    """
-    Encrypts the given file using SOPS if it is not already encrypted.
-    """
-    if check_if_encrypted(file_path):
-        debug(0, "File is already encrypted with SOPS: {}".format(file_path))
-        return
-    debug(0, "File Status:   DECRYPTED")
-    debug(0, "Action:        ENCRYPTING")
-    try:
-        subprocess.run(['sops', '--encrypt', '--in-place', file_path], check=True)
-    except subprocess.CalledProcessError as e:
-        debug(2, "Failed to encrypt file:", file_path)
-        debug(2, "Error:", str(e))
-        raise
-    debug(0, "File Status:   ENCRYPTED")
-
-def check_if_encrypted(file_path):
-    """
-    Checks if the given file is encrypted by looking for the SOPS encryption marker.
-    """
-    with open(file_path, 'r') as file:
-        content = file.read()
-    return '- recipient: ' + key_age_public in content
-
-def main():
-    """
-    Main function that parses arguments and checks each file for secrets.
-    """
-    parser = argparse.ArgumentParser(description="Checks for unencrypted Kubernetes secrets.")
-    parser.add_argument("filenames", nargs="*", help="Filenames to check.")
-    parser.add_argument("--hook-id", help="Identifier of the hook.", required=True)
-    parser.add_argument("--exclude", nargs="*", help="Regex patterns for files to exclude from checks.", default=[])
-    args = parser.parse_args()
-
-    EXCLUDE_PATTERNS = args.exclude
-    hook_id = args.hook_id
-
-    files_with_secrets = []
-    if hook_id == 'kubernetes-secret':
-        files_with_secrets = [f for f in args.filenames if not is_excluded(f, EXCLUDE_PATTERNS) and check_kubernetes_secret_file(f)]
-    else:
-        files_with_secrets = [f for f in args.filenames if not is_excluded(f, EXCLUDE_PATTERNS) and contains_secret(f, hook_id)]
-
-    return_code = 0
-    for file_with_secrets in files_with_secrets:
-        print(
-            "Unencrypted Kubernetes secret detected in file: {0}".format(
-                file_with_secrets
-            )
-        )
-        encrypt_file_if_needed(file_with_secrets)
-        return_code = 1
-    if return_code:
-        print("Secrets were detected and encrypted.")
-    return return_code
-
-if __name__ == "__main__":
-    sys.exit(main())
-
-
-if __name__ == "__main__":
-    """
-    If this script is executed as the main module, start the main function.
-    """
-    sys.exit(main())
-
-SOPS_REGEX = r"ENC.AES256"
-KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
-
-CREATION_RULES_PATH_REGEX = None  # This will be set after reading from .sops.yaml
 
 DEBUG_LEVEL = 0  # Set the desired debug level here, 0 for no debug output
 
@@ -154,6 +73,7 @@ SECRET_CHECKS = {
     'slack-webhook-url': check_slack_webhook_url,
     'google-oauth-client-secret': check_google_oauth_client_secret,
 }
+
 EXCLUDE_PATTERNS = []
 
 def load_creation_rules_path_regex():
@@ -186,11 +106,6 @@ def is_kubernetes_secret(data):
     Determines if the provided data structure represents a Kubernetes secret.
     """
     return data.get('kind', '').lower() == 'secret' and data.get('apiVersion', '').startswith('v1')
-
-
-
-root_dir = subprocess.getoutput('git rev-parse --show-toplevel')
-key_age_public = open(os.path.join(root_dir, '.age.pub')).read().strip()
 
 def check_if_encrypted(file_path):
     """
@@ -238,7 +153,6 @@ def contains_secret(filename, hook_id):
         return True
     return False
 
-
 def is_sops_installed():
     """
     Checks if SOPS is installed by attempting to call it.
@@ -267,9 +181,54 @@ def prompt_install_sops():
         print("SOPS installation was not approved. Exiting.")
         return False
 
+def main(argv=None):
+    """
+    Main function that parses arguments and checks each file for secrets and encryption.
+    """
+    global EXCLUDE_PATTERNS
+    secrets_detected = False
+    if not is_sops_installed():
+        if not prompt_install_sops():
+            return 1
+
+    global CREATION_RULES_PATH_REGEX
+    CREATION_RULES_PATH_REGEX = load_creation_rules_path_regex()
+
+    """
+    Main function that parses arguments and checks each file for secrets.
+    """
+    parser = argparse.ArgumentParser(description="Checks for unencrypted Kubernetes secrets.")
+    parser.add_argument("filenames", nargs="*", help="Filenames to check.")
+    parser.add_argument("--hook-id", help="Identifier of the hook.", required=True)
+    parser.add_argument("--exclude", nargs="*", help="Regex patterns for files to exclude from checks.", default=[])
+    args = parser.parse_args(argv)
+
+    EXCLUDE_PATTERNS = args.exclude
+    hook_id = args.hook_id
+
+    files_with_secrets = []
+    if hook_id == 'kubernetes-secret':
+        files_with_secrets = [f for f in args.filenames if not is_excluded(f, EXCLUDE_PATTERNS) and check_kubernetes_secret_file(f)]
+    else:
+        files_with_secrets = [f for f in args.filenames if not is_excluded(f, EXCLUDE_PATTERNS) and contains_secret(f, hook_id)]
+
+    return_code = 0
+    for file_with_secrets in files_with_secrets:
+        secrets_detected = True
+        print(
+            "Unencrypted Kubernetes secret detected in file: {0}".format(
+                file_with_secrets
+            )
+        )
+        return_code = 1
+    if secrets_detected:
+        print("Secrets were detected and encrypted.")
+    return return_code
+
 
 if __name__ == "__main__":
     """
     If this script is executed as the main module, start the main function.
     """
-    sys.exit(main())
+    sys.exit(main(sys.argv[1:]))
+

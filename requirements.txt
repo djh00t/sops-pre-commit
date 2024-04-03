@@ -2,4 +2,3 @@ argparse
 datetime
 PyYAML
 python-sops
-PyYAML
