@@ -1,3 +1,4 @@
 # Sops
 .decrypted~*.yaml
 .aider*
+**.pyc
