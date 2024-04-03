@@ -10,6 +10,7 @@ import argparse
 import yaml
 import sys
 import subprocess
+import re
 from encrypt_decrypt_sops import encrypt_file
 import yaml
 
@@ -17,6 +18,19 @@ SOPS_REGEX = r"ENC.AES256"
 KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
 
 CREATION_RULES_PATH_REGEX = None  # This will be set after reading from .sops.yaml
+
+SECRET_PATTERNS = {
+    'AWS Access Key ID': r'AKIA[0-9A-Z]{16}',
+    'AWS Secret Access Key': r'(?i)aws(.{0,20})?['"\s]?([0-9a-zA-Z/+]{40})',
+    'RSA Private Key': r'-----BEGIN RSA PRIVATE KEY-----',
+    'SSH Private Key': r'-----BEGIN (EC|OPENSSH|DSA|RSA) PRIVATE KEY-----',
+    'GitHub Personal Access Token': r'ghp_[0-9a-zA-Z]{36}',
+    'Generic API Key': r'(?i)api(_|-)?key['"\s]?[:=]['"\s]?[0-9a-zA-Z]{32,}',
+    'Google Cloud Platform API Key': r'AIza[0-9A-Za-z\\-_]{35}',
+    'JSON Web Token (JWT)': r'eyJ[A-Za-z0-9-_=]+\.eyJ[A-Za-z0-9-_=]+\.[A-Za-z0-9-_.+/=]*',
+    'Slack Webhook URL': r'https://hooks.slack.com/services/T[A-Z0-9]{8}/B[A-Z0-9]{8}/[a-zA-Z0-9]{24}',
+    'Google OAuth 2.0 Client Secret': r'(?i)"client_secret":"[a-zA-Z0-9-_]{24}',
+}
 
 def load_creation_rules_path_regex():
     """
@@ -47,6 +61,15 @@ def contains_secret(filename):
     """
     Checks if the given filename contains an unencrypted Kubernetes secret by parsing the YAML content.
     """
+    with open(filename, 'r') as file:
+        file_content = file.read()
+
+    for secret_type, pattern in SECRET_PATTERNS.items():
+        if re.search(pattern, file_content):
+            print(f"Detected {secret_type} in file: {filename}")
+            encrypt_file(filename)
+            return True
+
     try:
         with open(filename, 'r') as file:
             documents = yaml.safe_load_all(file)
@@ -90,6 +113,7 @@ def main(argv=None):
     """
     Main function that parses arguments and checks each file for secrets and encryption.
     """
+    secrets_detected = False
     if not is_sops_installed():
         if not prompt_install_sops():
             return 1
@@ -106,12 +130,15 @@ def main(argv=None):
     files_with_secrets = [f for f in args.filenames if contains_secret(f)]
     return_code = 0
     for file_with_secrets in files_with_secrets:
+        secrets_detected = True
         print(
             "Unencrypted Kubernetes secret detected in file: {0}".format(
                 file_with_secrets
             )
         )
         return_code = 1
+    if secrets_detected:
+        print("Secrets were detected and encrypted.")
     return return_code
 
 
