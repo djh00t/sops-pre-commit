@@ -5,14 +5,13 @@ encrypted with SOPS or marked for deletion in Kustomize patches. If an unencrypt
 is found, it exits with a non-zero status code to block the commit.
 """
 from __future__ import print_function
-import os
-import argparse
-import yaml
-import sys
-import subprocess
-import re
-from datetime import datetime
-import socket
+SOPS_REGEX = r"ENC.AES256"
+KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
+DEBUG_LEVEL = 0  # Set the desired debug level here, 0 for no debug output
+EXCLUDE_PATTERNS = []
+root_dir = subprocess.getoutput('git rev-parse --show-toplevel')
+key_age_public = open(os.path.join(root_dir, '.age.pub')).read().strip()
+CREATION_RULES_PATH_REGEX = None  # This will be set after reading from .sops.yaml
 
 SOPS_REGEX = r"ENC.AES256"
 KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
@@ -24,37 +23,29 @@ key_age_public = open(os.path.join(root_dir, '.age.pub')).read().strip()
 
 DEBUG_LEVEL = 0  # Set the desired debug level here, 0 for no debug output
 
-def debug(debug_msg_level, *debug_msg):
+def debug(level, message):
     """
-    Outputs debug messages to the console with varying levels of severity.
+    Prints a debug message with a given level.
     """
-    debug_levels = ['INFO', 'WARN', 'ERROR', 'DEBUG', 'TRACE', 'FATAL']
-    color_codes = ['\033[1;32m', '\033[1;33m', '\033[1;31m', '\033[1;34m', '\033[1;38;5;208m', '\033[1;3;31m']
-    reset_color = '\033[0m'
-    current_date = datetime.now().strftime('%b %d %H:%M:%S')
-    hostname = socket.gethostname()
-    if DEBUG_LEVEL >= debug_msg_level or debug_msg_level == 5:
-        color = color_codes[debug_msg_level]
-        level_str = debug_levels[debug_msg_level]
-        print(f"{current_date} {hostname} {color}{level_str}:{reset_color}\t{color}{' '.join(debug_msg)}{reset_color}")
+    if level <= DEBUG_LEVEL:
+        print("DEBUG: {}".format(message))
 
-def encrypt_file(file_path):
+def encrypt_file_if_needed(file_path):
     """
     Encrypts the given file using SOPS if it is not already encrypted.
     """
-    if not check_if_encrypted(file_path):
-        debug(0, "File Status:   DECRYPTED")
-        debug(0, "Action:        ENCRYPTING")
-        try:
-            subprocess.run(['sops', '--encrypt', '--in-place', file_path], check=True)
-        except subprocess.CalledProcessError as e:
-            debug(2, "Failed to encrypt file:", file_path)
-            debug(2, "Error:", str(e))
-            raise
-        debug(0, "File Status:   ENCRYPTED")
-    else:
-        debug(0, "File Status:   ENCRYPTED")
-        debug(0, "Action:        SKIPPING")
+    if check_if_encrypted(file_path):
+        debug(0, "File is already encrypted with SOPS: {}".format(file_path))
+        return
+    debug(0, "File Status:   DECRYPTED")
+    debug(0, "Action:        ENCRYPTING")
+    try:
+        subprocess.run(['sops', '--encrypt', '--in-place', file_path], check=True)
+    except subprocess.CalledProcessError as e:
+        debug(2, "Failed to encrypt file:", file_path)
+        debug(2, "Error:", str(e))
+        raise
+    debug(0, "File Status:   ENCRYPTED")
 
 def check_if_encrypted(file_path):
     """
@@ -64,24 +55,15 @@ def check_if_encrypted(file_path):
         content = file.read()
     return '- recipient: ' + key_age_public in content
 
-def main(argv=None):
+def main():
     """
-    Main function that parses arguments and checks each file for secrets and encryption.
+    Main function that parses arguments and checks each file for secrets.
     """
-    global EXCLUDE_PATTERNS
-    secrets_detected = False
-    if not is_sops_installed():
-        if not prompt_install_sops():
-            return 1
-
-    global CREATION_RULES_PATH_REGEX
-    CREATION_RULES_PATH_REGEX = load_creation_rules_path_regex()
-
     parser = argparse.ArgumentParser(description="Checks for unencrypted Kubernetes secrets.")
     parser.add_argument("filenames", nargs="*", help="Filenames to check.")
     parser.add_argument("--hook-id", help="Identifier of the hook.", required=True)
     parser.add_argument("--exclude", nargs="*", help="Regex patterns for files to exclude from checks.", default=[])
-    args = parser.parse_args(argv)
+    args = parser.parse_args()
 
     EXCLUDE_PATTERNS = args.exclude
     hook_id = args.hook_id
@@ -94,16 +76,19 @@ def main(argv=None):
 
     return_code = 0
     for file_with_secrets in files_with_secrets:
-        secrets_detected = True
         print(
             "Unencrypted Kubernetes secret detected in file: {0}".format(
                 file_with_secrets
             )
         )
+        encrypt_file_if_needed(file_with_secrets)
         return_code = 1
-    if secrets_detected:
+    if return_code:
         print("Secrets were detected and encrypted.")
     return return_code
+
+if __name__ == "__main__":
+    sys.exit(main())
 
 
 if __name__ == "__main__":
