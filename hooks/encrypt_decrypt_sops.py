@@ -1,0 +1,116 @@
+#!/usr/bin/env python3
+import argparse
+import os
+import subprocess
+import sys
+from datetime import datetime
+import socket
+import re
+import yaml
+
+def debug(debug_msg_level, *debug_msg):
+    debug_levels = ['INFO', 'WARN', 'ERROR', 'DEBUG', 'TRACE', 'FATAL']
+    color_codes = ['\033[1;32m', '\033[1;33m', '\033[1;31m', '\033[1;34m', '\033[1;38;5;208m', '\033[1;3;31m']
+    reset_color = '\033[0m'
+    current_date = datetime.now().strftime('%b %d %H:%M:%S')
+    hostname = socket.gethostname()
+    if debug_level >= debug_msg_level or debug_msg_level == 5:
+        color = color_codes[debug_msg_level]
+        level_str = debug_levels[debug_msg_level]
+        print(f"{current_date} {hostname} {color}{level_str}:{reset_color}\t{color}{' '.join(debug_msg)}{reset_color}")
+
+def check_if_encrypted(file_path):
+    with open(file_path, 'r') as file:
+        content = file.read()
+    return '- recipient: ' + key_age_public in content
+
+def decrypt_file(file_path):
+    if check_if_encrypted(file_path):
+        debug(0, "File Status:   ENCRYPTED")
+        debug(0, "Action:        DECRYPTING")
+        subprocess.run(['sops', '--decrypt', '--in-place', file_path], check=True)
+        debug(0, "File Status:   DECRYPTED")
+    else:
+        debug(0, "File Status:   DECRYPTED")
+        debug(0, "Action:        SKIPPING")
+
+def encrypt_file(file_path):
+    if not check_if_encrypted(file_path):
+        debug(0, "File Status:   DECRYPTED")
+        debug(0, "Action:        ENCRYPTING")
+        subprocess.run(['sops', '--encrypt', '--in-place', file_path], check=True)
+        debug(0, "File Status:   ENCRYPTED")
+    else:
+        debug(0, "File Status:   ENCRYPTED")
+        debug(0, "Action:        SKIPPING")
+
+def validate_file(file_path):
+    if os.path.isfile(file_path):
+        debug(3, "Validate file:", file_path)
+        return os.path.normpath(file_path)
+    else:
+        debug(2, "File not found:", file_path)
+        return None
+
+def explode_wildcards(pattern):
+    return [os.path.join(os.getcwd(), f) for f in sorted(subprocess.getoutput(f'ls -A {pattern} 2> /dev/null').split())]
+
+def explode_directories(directory):
+    valid_files = []
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            valid_files.append(os.path.join(root, file))
+    return valid_files
+
+def value_router(value):
+    if os.path.isfile(value):
+        debug(0, "Routing:", value, "is a file")
+        return [validate_file(value)]
+    elif os.path.isdir(value):
+        debug(0, "Routing:", value, "is a directory")
+        return explode_directories(value)
+    elif re.search(r'[\*\?\[\]\{\}\|]', value):
+        debug(0, "Routing:", value, "is a regex/wildcard value")
+        return explode_wildcards(value)
+    else:
+        debug(2, "Invalid value:", value)
+        return []
+
+def handle_args(args):
+    files = []
+    for arg in args:
+        debug(3, "Processing:", arg)
+        files.extend(value_router(arg))
+    return files
+
+def main():
+    parser = argparse.ArgumentParser(description='Encrypt or Decrypt files with SOPS')
+    parser.add_argument('files', nargs='+', help='Files or directories to process')
+    parser.add_argument('-d', '--debug', action='store_true', help='Enable debug output')
+    args = parser.parse_args()
+
+    global debug_level
+    debug_level = 3 if args.debug else 2
+
+    global key_age_public
+    global key_age_private
+    key_age_public = open(os.path.join(root_dir, '.age.pub')).read().strip()
+    key_age_private = open(os.path.join(root_dir, 'age.agekey')).readlines()[1].strip()
+
+    files_to_process = handle_args(args.files)
+
+    action = os.path.basename(__file__).replace('.py', '')
+
+    for file_path in files_to_process:
+        if action == 'encrypt' and not check_if_encrypted(file_path):
+            debug(0, "Encrypting:", file_path)
+            encrypt_file(file_path)
+        elif action == 'decrypt' and check_if_encrypted(file_path):
+            debug(0, "Decrypting:", file_path)
+            decrypt_file(file_path)
+        else:
+            debug(0, "Skipping:", file_path)
+
+if __name__ == '__main__':
+    root_dir = subprocess.getoutput('git rev-parse --show-toplevel')
+    main()
