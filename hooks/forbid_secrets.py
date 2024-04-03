@@ -13,12 +13,14 @@ import subprocess
 import re
 from datetime import datetime
 import socket
-import re
 
 SOPS_REGEX = r"ENC.AES256"
 KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
 
 CREATION_RULES_PATH_REGEX = None  # This will be set after reading from .sops.yaml
+
+root_dir = subprocess.getoutput('git rev-parse --show-toplevel')
+key_age_public = open(os.path.join(root_dir, '.age.pub')).read().strip()
 
 DEBUG_LEVEL = 0  # Set the desired debug level here, 0 for no debug output
 
@@ -54,9 +56,6 @@ def check_if_encrypted(file_path):
     with open(file_path, 'r') as file:
         content = file.read()
     return '- recipient: ' + key_age_public in content
-
-root_dir = subprocess.getoutput('git rev-parse --show-toplevel')
-key_age_public = open(os.path.join(root_dir, '.age.pub')).read().strip()
 
 def debug(debug_msg_level, *debug_msg):
     """
