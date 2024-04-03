@@ -11,7 +11,157 @@ import yaml
 import sys
 import subprocess
 import re
-from encrypt_decrypt_sops import encrypt_file
+from datetime import datetime
+import socket
+import re
+
+SOPS_REGEX = r"ENC.AES256"
+KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
+
+CREATION_RULES_PATH_REGEX = None  # This will be set after reading from .sops.yaml
+
+DEBUG_LEVEL = 0  # Set the desired debug level here, 0 for no debug output
+
+def debug(level, message):
+    """
+    Prints a debug message with a given level.
+    """
+    if level <= DEBUG_LEVEL:
+        print("DEBUG: {}".format(message))
+
+def encrypt_file(file_path):
+    """
+    Encrypts the given file using SOPS if it is not already encrypted.
+    """
+    if not check_if_encrypted(file_path):
+        debug(0, "File Status:   DECRYPTED")
+        debug(0, "Action:        ENCRYPTING")
+        try:
+            subprocess.run(['sops', '--encrypt', '--in-place', file_path], check=True)
+        except subprocess.CalledProcessError as e:
+            debug(2, "Failed to encrypt file:", file_path)
+            debug(2, "Error:", str(e))
+            raise
+        debug(0, "File Status:   ENCRYPTED")
+    else:
+        debug(0, "File Status:   ENCRYPTED")
+        debug(0, "Action:        SKIPPING")
+
+def check_if_encrypted(file_path):
+    """
+    Checks if the given file is encrypted by looking for the SOPS encryption marker.
+    """
+    with open(file_path, 'r') as file:
+        content = file.read()
+    return '- recipient: ' + key_age_public in content
+
+root_dir = subprocess.getoutput('git rev-parse --show-toplevel')
+key_age_public = open(os.path.join(root_dir, '.age.pub')).read().strip()
+
+def debug(debug_msg_level, *debug_msg):
+    """
+    Outputs debug messages to the console with varying levels of severity.
+    """
+    debug_levels = ['INFO', 'WARN', 'ERROR', 'DEBUG', 'TRACE', 'FATAL']
+    color_codes = ['\033[1;32m', '\033[1;33m', '\033[1;31m', '\033[1;34m', '\033[1;38;5;208m', '\033[1;3;31m']
+    reset_color = '\033[0m'
+    current_date = datetime.now().strftime('%b %d %H:%M:%S')
+    hostname = socket.gethostname()
+    if DEBUG_LEVEL >= debug_msg_level or debug_msg_level == 5:
+        color = color_codes[debug_msg_level]
+        level_str = debug_levels[debug_msg_level]
+        print(f"{current_date} {hostname} {color}{level_str}:{reset_color}\t{color}{' '.join(debug_msg)}{reset_color}")
+
+def load_creation_rules_path_regex():
+    """
+    Loads the path_regex from the .sops.yaml file.
+    """
+    with open('.sops.yaml', 'r') as sops_config_file:
+        sops_config = yaml.safe_load(sops_config_file)
+        for rule in sops_config.get('creation_rules', []):
+            path_regex = rule.get('path_regex')
+            if path_regex:
+                return path_regex
+        raise ValueError("No path_regex found in .sops.yaml creation_rules.")
+
+def is_sops_installed():
+    """
+    Checks if SOPS is installed by attempting to call it.
+    """
+    try:
+        subprocess.run(['sops', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+def prompt_install_sops():
+    """
+    Prompts the user to install SOPS if it is not installed.
+    """
+    print("SOPS is not installed. It is required to encrypt secrets.")
+    approval = input("Would you like to install SOPS now? [y/N]: ").strip().lower()
+    if approval == 'y':
+        try:
+            subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', 'requirements.txt'], check=True)
+            print("SOPS has been successfully installed.")
+            return True
+        except subprocess.CalledProcessError as e:
+            print("Failed to install SOPS:", e)
+            return False
+    else:
+        print("SOPS installation was not approved. Exiting.")
+        return False
+
+def main(argv=None):
+    """
+    Main function that parses arguments and checks each file for secrets and encryption.
+    """
+    global EXCLUDE_PATTERNS
+    secrets_detected = False
+    if not is_sops_installed():
+        if not prompt_install_sops():
+            return 1
+
+    global CREATION_RULES_PATH_REGEX
+    CREATION_RULES_PATH_REGEX = load_creation_rules_path_regex()
+
+    """
+    Main function that parses arguments and checks each file for secrets.
+    """
+    parser = argparse.ArgumentParser(description="Checks for unencrypted Kubernetes secrets.")
+    parser.add_argument("filenames", nargs="*", help="Filenames to check.")
+    parser.add_argument("--hook-id", help="Identifier of the hook.", required=True)
+    parser.add_argument("--exclude", nargs="*", help="Regex patterns for files to exclude from checks.", default=[])
+    args = parser.parse_args(argv)
+
+    EXCLUDE_PATTERNS = args.exclude
+    hook_id = args.hook_id
+
+    files_with_secrets = []
+    if hook_id == 'kubernetes-secret':
+        files_with_secrets = [f for f in args.filenames if not is_excluded(f, EXCLUDE_PATTERNS) and check_kubernetes_secret_file(f)]
+    else:
+        files_with_secrets = [f for f in args.filenames if not is_excluded(f, EXCLUDE_PATTERNS) and contains_secret(f, hook_id)]
+
+    return_code = 0
+    for file_with_secrets in files_with_secrets:
+        secrets_detected = True
+        print(
+            "Unencrypted Kubernetes secret detected in file: {0}".format(
+                file_with_secrets
+            )
+        )
+        return_code = 1
+    if secrets_detected:
+        print("Secrets were detected and encrypted.")
+    return return_code
+
+
+if __name__ == "__main__":
+    """
+    If this script is executed as the main module, start the main function.
+    """
+    sys.exit(main(sys.argv[1:]))
 
 SOPS_REGEX = r"ENC.AES256"
 KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
