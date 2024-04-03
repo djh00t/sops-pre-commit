@@ -31,7 +31,7 @@ def debug(level, message):
     Prints a debug message with a given level.
     """
     if level <= DEBUG_LEVEL:
-        print("DEBUG: {}".format(message))
+        print("DEBUG:", *message)
 
 def encrypt_file(file_path):
     """
