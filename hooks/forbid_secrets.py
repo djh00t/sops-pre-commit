@@ -94,6 +94,20 @@ def is_kubernetes_secret(data):
     """
     return data.get('kind', '').lower() == 'secret' and data.get('apiVersion', '').startswith('v1')
 
+import os
+import subprocess
+
+root_dir = subprocess.getoutput('git rev-parse --show-toplevel')
+key_age_public = open(os.path.join(root_dir, '.age.pub')).read().strip()
+
+def check_if_encrypted(file_path):
+    """
+    Checks if the given file is encrypted by looking for the SOPS encryption marker.
+    """
+    with open(file_path, 'r') as file:
+        content = file.read()
+    return '- recipient: ' + key_age_public in content
+
 def check_kubernetes_secret_file(filename):
     """
     Checks if the given filename contains a Kubernetes secret.
@@ -103,7 +117,7 @@ def check_kubernetes_secret_file(filename):
             documents = yaml.safe_load_all(file)
             for doc in documents:
                 if is_kubernetes_secret(doc):
-                    if not is_encrypted_with_sops(filename):
+                    if not check_if_encrypted(filename):
                         print(f"Detected unencrypted Kubernetes Secret in file: {filename}")
                         encrypt_file(filename)
                         return True
