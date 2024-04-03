@@ -31,6 +31,7 @@ SECRET_PATTERNS = {
     'Slack Webhook URL': r'https://hooks.slack.com/services/T[A-Z0-9]{8}/B[A-Z0-9]{8}/[a-zA-Z0-9]{24}',
     'Google OAuth 2.0 Client Secret': r'(?i)"client_secret":"[a-zA-Z0-9-_]{24}',
 }
+EXCLUDE_PATTERNS = []
 
 def load_creation_rules_path_regex():
     """
@@ -43,6 +44,11 @@ def load_creation_rules_path_regex():
             if path_regex:
                 return path_regex
         raise ValueError("No path_regex found in .sops.yaml creation_rules.")
+def is_excluded(filename, exclude_patterns):
+    """
+    Checks if the given filename matches any of the exclude patterns.
+    """
+    return any(re.search(pattern, filename) for pattern in exclude_patterns)
 
 def is_encrypted_with_sops(filename):
     """
@@ -113,6 +119,7 @@ def main(argv=None):
     """
     Main function that parses arguments and checks each file for secrets and encryption.
     """
+    global EXCLUDE_PATTERNS
     secrets_detected = False
     if not is_sops_installed():
         if not prompt_install_sops():
@@ -126,8 +133,11 @@ def main(argv=None):
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("filenames", nargs="*", help="filenames to check")
+    parser.add_argument("--exclude", nargs="*", help="regex patterns for files to exclude from checks", default=[])
     args = parser.parse_args(argv)
     files_with_secrets = [f for f in args.filenames if contains_secret(f)]
+    EXCLUDE_PATTERNS = args.exclude
+    files_with_secrets = [f for f in args.filenames if not is_excluded(f, EXCLUDE_PATTERNS) and contains_secret(f)]
     return_code = 0
     for file_with_secrets in files_with_secrets:
         secrets_detected = True
