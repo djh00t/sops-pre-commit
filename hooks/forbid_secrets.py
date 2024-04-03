@@ -7,13 +7,14 @@ is found, it exits with a non-zero status code to block the commit.
 from __future__ import print_function
 
 import argparse
-import re
+import yaml
 import sys
 import subprocess
 from encrypt_decrypt_sops import encrypt_file
 import yaml
 
-SECRET_REGEX = r"^kind:\ssecret$"
+SOPS_REGEX = r"ENC.AES256"
+KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
 SOPS_REGEX = r"ENC.AES256"
 KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
 
@@ -39,15 +40,26 @@ def is_encrypted_with_sops(filename):
     with open(filename, 'r') as file:
         return SOPS_REGEX in file.read()
 
+def is_kubernetes_secret(data):
+    """
+    Determines if the provided data structure represents a Kubernetes secret.
+    """
+    return data.get('kind', '').lower() == 'secret' and data.get('apiVersion', '').startswith('v1')
+
 def contains_secret(filename):
     """
-    Checks if the given filename contains an unencrypted Kubernetes secret.
+    Checks if the given filename contains an unencrypted Kubernetes secret by parsing the YAML content.
     """
-    with open(filename, mode="r") as file_checked:
-        lines = file_checked.read()
-        kubernetes_secret = re.findall(
-            SECRET_REGEX, lines, flags=re.IGNORECASE | re.MULTILINE
-        )
+    try:
+        with open(filename, 'r') as file:
+            documents = yaml.safe_load_all(file)
+            for doc in documents:
+                if is_kubernetes_secret(doc):
+                    # Additional checks for SOPS and Kustomize can be implemented here
+                    return True
+    except yaml.YAMLError as e:
+        print(f"Error parsing YAML file {filename}: {e}")
+    return False
         # Check if the file matches the creation rules path regex and is not encrypted
         if re.search(CREATION_RULES_PATH_REGEX, filename) and not is_encrypted_with_sops(filename):
             print(
