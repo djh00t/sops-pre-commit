@@ -11,7 +11,6 @@ import yaml
 import sys
 import subprocess
 import re
-from encrypt_decrypt_sops import encrypt_file
 
 SOPS_REGEX = r"ENC.AES256"
 KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
@@ -19,7 +18,11 @@ KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
 CREATION_RULES_PATH_REGEX = None  # This will be set after reading from .sops.yaml
 
 root_dir = subprocess.getoutput('git rev-parse --show-toplevel')
+
+global key_age_public
+global key_age_private
 key_age_public = open(os.path.join(root_dir, '.age.pub')).read().strip()
+key_age_private = open(os.path.join(root_dir, 'age.agekey')).readlines()[1].strip()
 
 DEBUG_LEVEL = 0  # Set the desired debug level here, 0 for no debug output
 
@@ -30,6 +33,31 @@ def debug(level, message):
     if level <= DEBUG_LEVEL:
         print("DEBUG: {}".format(message))
 
+def encrypt_file(file_path):
+    """
+    Encrypts the given file using SOPS if it is not already encrypted.
+    """
+    if not check_if_encrypted(file_path):
+        debug(0, "File Status:   DECRYPTED")
+        debug(0, "Action:        ENCRYPTING")
+        try:
+            subprocess.run(['sops', '--encrypt', '--in-place', file_path], check=True)
+        except subprocess.CalledProcessError as e:
+            debug(2, "Failed to encrypt file:", file_path)
+            debug(2, "Error:", str(e))
+            raise
+        debug(0, "File Status:   ENCRYPTED")
+    else:
+        debug(0, "File Status:   ENCRYPTED")
+        debug(0, "Action:        SKIPPING")
+
+def check_if_encrypted(file_path):
+    """
+    Checks if the given file is encrypted by looking for the SOPS encryption marker.
+    """
+    with open(file_path, 'r') as file:
+        content = file.read()
+    return '- recipient: ' + key_age_public in content
 
 def check_aws_access_key_id(content):
     return re.search(r'AKIA[0-9A-Z]{16}', content)
