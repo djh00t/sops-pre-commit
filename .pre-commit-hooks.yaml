@@ -3,11 +3,13 @@
   entry: forbid_secrets --hook-id aws-access-key-id
   language: python
   files: ((^|/)*.(ya?ml)$)
+  additional_dependencies: ['PyYAML']
 - id: aws-secret-access-key
   name: Check for AWS Secret Access Keys
   entry: forbid_secrets --hook-id aws-secret-access-key
   language: python
   files: ((^|/)*.(ya?ml)$)
+  additional_dependencies: ['PyYAML']
 - id: gcp-api-key
   name: Check for GCP API Keys
   entry: forbid_secrets --hook-id gcp-api-key
