@@ -93,9 +93,6 @@ def is_kubernetes_secret(data):
     """
     return data.get('kind', '').lower() == 'secret' and data.get('apiVersion', '').startswith('v1')
 
-def contains_secret(filename):
-    """
-    Checks if the given filename contains an unencrypted Kubernetes secret by parsing the YAML content.
 def contains_secret(filename, hook_id):
     """
     Checks if the given filename contains an unencrypted secret by searching for patterns.
