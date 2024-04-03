@@ -15,9 +15,6 @@ import yaml
 
 SOPS_REGEX = r"ENC.AES256"
 KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
-SOPS_REGEX = r"ENC.AES256"
-KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
-
 
 CREATION_RULES_PATH_REGEX = None  # This will be set after reading from .sops.yaml
 
@@ -59,21 +56,6 @@ def contains_secret(filename):
                     return True
     except yaml.YAMLError as e:
         print(f"Error parsing YAML file {filename}: {e}")
-    return False
-        # Check if the file matches the creation rules path regex and is not encrypted
-        if re.search(CREATION_RULES_PATH_REGEX, filename) and not is_encrypted_with_sops(filename):
-            print(
-                "File matches creation rules path regex but is not encrypted with SOPS: {0}".format(filename)
-            )
-            encrypt_file(filename)
-            return True
-        if kubernetes_secret:
-            ignore_secret = re.findall(
-                SOPS_REGEX, lines, flags=re.IGNORECASE | re.MULTILINE
-            ) or re.findall(KUSTOMIZE_REGEX, lines, flags=re.IGNORECASE | re.MULTILINE)
-            if not ignore_secret:
-                encrypt_file(filename)
-                return True
     return False
 
 def is_sops_installed():
