@@ -232,3 +232,12 @@ def debug(level, message):
     if level <= DEBUG_LEVEL:
         print(f"DEBUG: {message}")
 
+DEBUG_LEVEL = 0  # Set the desired debug level here, 0 for no debug output
+
+def debug(level, message):
+    """
+    Prints a debug message with a given level.
+    """
+    if level <= DEBUG_LEVEL:
+        print("DEBUG: {}".format(message))
+
