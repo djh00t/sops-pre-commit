@@ -74,6 +74,7 @@ def load_creation_rules_path_regex():
             if path_regex:
                 return path_regex
         raise ValueError("No path_regex found in .sops.yaml creation_rules.")
+        
 def is_excluded(filename, exclude_patterns):
     """
     Checks if the given filename matches any of the exclude patterns.
