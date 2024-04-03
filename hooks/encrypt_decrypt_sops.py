@@ -12,17 +12,12 @@ import sys
 from datetime import datetime
 import socket
 import re
-
 import yaml
 
 root_dir = subprocess.getoutput('git rev-parse --show-toplevel')
 key_age_public = open(os.path.join(root_dir, '.age.pub')).read().strip()
 key_age_private = open(os.path.join(root_dir, 'age.agekey')).readlines()[1].strip()
-import yaml
 
-root_dir = subprocess.getoutput('git rev-parse --show-toplevel')
-key_age_public = open(os.path.join(root_dir, '.age.pub')).read().strip()
-key_age_private = open(os.path.join(root_dir, 'age.agekey')).readlines()[1].strip()
 debug_level = 2  # Default debug level set to show warnings and errors
 
 def debug(debug_msg_level, *debug_msg):

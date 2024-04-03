@@ -12,7 +12,6 @@ import sys
 import subprocess
 import re
 from encrypt_decrypt_sops import encrypt_file
-import yaml
 
 SOPS_REGEX = r"ENC.AES256"
 KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
