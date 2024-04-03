@@ -169,18 +169,21 @@ def main(argv=None):
     """
     Main function that parses arguments and checks each file for secrets.
     """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("filenames", nargs="*", help="filenames to check")
-    parser.add_argument("--exclude", nargs="*", help="regex patterns for files to exclude from checks", default=[])
+    parser = argparse.ArgumentParser(description="Checks for unencrypted Kubernetes secrets.")
+    parser.add_argument("filenames", nargs="*", help="Filenames to check.")
+    parser.add_argument("--hook-id", help="Identifier of the hook.", required=True)
+    parser.add_argument("--exclude", nargs="*", help="Regex patterns for files to exclude from checks.", default=[])
     args = parser.parse_args(argv)
-    parser.add_argument("--disable-hook", nargs="*", help="hook IDs to disable", default=[])
-    disabled_hooks = args.disable_hook
-    if 'kubernetes-secret' not in disabled_hooks:
-        kubernetes_secret_files = [f for f in args.filenames if check_kubernetes_secret_file(f)]
-        files_with_secrets.extend(kubernetes_secret_files)
-    files_with_secrets = [f for f in args.filenames if contains_secret(f)]
+
     EXCLUDE_PATTERNS = args.exclude
-    files_with_secrets = [f for f in args.filenames if not is_excluded(f, EXCLUDE_PATTERNS) and contains_secret(f)]
+    hook_id = args.hook_id
+
+    files_with_secrets = []
+    if hook_id == 'kubernetes-secret':
+        files_with_secrets = [f for f in args.filenames if not is_excluded(f, EXCLUDE_PATTERNS) and check_kubernetes_secret_file(f)]
+    else:
+        files_with_secrets = [f for f in args.filenames if not is_excluded(f, EXCLUDE_PATTERNS) and contains_secret(f, hook_id)]
+
     return_code = 0
     for file_with_secrets in files_with_secrets:
         secrets_detected = True
