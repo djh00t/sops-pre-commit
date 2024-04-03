@@ -14,7 +14,15 @@ import socket
 import re
 
 import yaml
+
+root_dir = subprocess.getoutput('git rev-parse --show-toplevel')
+key_age_public = open(os.path.join(root_dir, '.age.pub')).read().strip()
+key_age_private = open(os.path.join(root_dir, 'age.agekey')).readlines()[1].strip()
 import yaml
+
+root_dir = subprocess.getoutput('git rev-parse --show-toplevel')
+key_age_public = open(os.path.join(root_dir, '.age.pub')).read().strip()
+key_age_private = open(os.path.join(root_dir, 'age.agekey')).readlines()[1].strip()
 
 def debug(debug_msg_level, *debug_msg):
     """
@@ -118,7 +126,7 @@ def handle_args(args):
         files.extend(value_router(arg))
     return files
 
-def main():
+def main(files_to_process):
     """
     The main function that parses arguments and processes files for encryption or decryption.
     """
@@ -135,9 +143,7 @@ def main():
     key_age_public = open(os.path.join(root_dir, '.age.pub')).read().strip()
     key_age_private = open(os.path.join(root_dir, 'age.agekey')).readlines()[1].strip()
 
-    files_to_process = handle_args(args.files)
-
-    action = os.path.basename(__file__).replace('.py', '')
+    action = 'encrypt' if 'encrypt' in os.path.basename(__file__) else 'decrypt'
 
     for file_path in files_to_process:
         if action == 'encrypt' and not check_if_encrypted(file_path):
@@ -153,5 +159,5 @@ if __name__ == '__main__':
     """
     Entry point of the script. Sets the root directory and calls the main function.
     """
-    root_dir = subprocess.getoutput('git rev-parse --show-toplevel')
-    main()
+    files_to_process = handle_args(sys.argv[1:])
+    main(files_to_process)
