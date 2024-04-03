@@ -103,9 +103,13 @@ def check_kubernetes_secret_file(filename):
             documents = yaml.safe_load_all(file)
             for doc in documents:
                 if is_kubernetes_secret(doc):
-                    print(f"Detected Kubernetes Secret in file: {filename}")
-                    encrypt_file(filename)
-                    return True
+                    if not is_encrypted_with_sops(filename):
+                        print(f"Detected unencrypted Kubernetes Secret in file: {filename}")
+                        encrypt_file(filename)
+                        return True
+                    else:
+                        print(f"File is already encrypted with SOPS: {filename}")
+                        return False
     except yaml.YAMLError as e:
         print(f"Error parsing YAML file {filename}: {e}")
     return False
