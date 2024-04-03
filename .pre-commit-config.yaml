@@ -12,9 +12,11 @@ repos:
   rev: v1.0.0
   hooks:
     - id: kubernetes-secret
-      # Removed the kubernetes-secret hook as it is not present in the repository
-      # - id: kubernetes-secret
-      #   exclude: (tmpl\/.*.sops\.ya?ml|knative\-operator\.ya?ml|tekton\-pipelines\.ya?ml)
+      name: Check for unencrypted Kubernetes secrets
+      entry: forbid_secrets
+      language: python
+      files: \.(yaml|yml)$
+      args: ['--hook-id', 'kubernetes-secret']
     - id: aws-access-key-id
     - id: aws-secret-access-key
     - id: rsa-private-key
