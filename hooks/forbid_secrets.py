@@ -133,7 +133,7 @@ def contains_secret(filename, hook_id):
     Checks if the given filename contains an unencrypted secret by searching for patterns.
     """
     if check_if_encrypted(filename):
-        debug(0, f"File is already encrypted with SOPS: {filename}")
+        debug(0, "File is already encrypted with SOPS: {}".format(filename))
         return False
 
     with open(filename, 'r') as file:
@@ -225,3 +225,10 @@ if __name__ == "__main__":
     If this script is executed as the main module, start the main function.
     """
     sys.exit(main(sys.argv[1:]))
+def debug(level, message):
+    """
+    Prints a debug message with a given level.
+    """
+    if level <= DEBUG_LEVEL:
+        print(f"DEBUG: {message}")
+
