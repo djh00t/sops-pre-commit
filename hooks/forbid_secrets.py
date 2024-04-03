@@ -66,10 +66,10 @@ def check_aws_secret_access_key(content):
     return re.search(r'(?i)aws(.{0,20})?[\'"\s]?([0-9a-zA-Z/+]{40})', content)
 
 def check_rsa_private_key(content):
-    return re.search(r'-----BEGIN RSA PRIVATE KEY-----', content)
+    return re.search(r'-----BEGIN RSA PRIVATE KEY-----\s*([A-Za-z0-9+/=\s]+)\s*-----END RSA PRIVATE KEY-----', content, re.DOTALL)
 
 def check_ssh_private_key(content):
-    return re.search(r'-----BEGIN (EC|OPENSSH|DSA|RSA) PRIVATE KEY-----\s*([A-Za-z0-9+/=\s]+)\s*-----END (EC|OPENSSH|DSA|RSA) PRIVATE KEY-----', content, re.DOTALL)
+    return re.search(r'-----BEGIN ((EC|OPENSSH|DSA) PRIVATE KEY|RSA PRIVATE KEY)-----\s*([A-Za-z0-9+/=\s]+)\s*-----END ((EC|OPENSSH|DSA) PRIVATE KEY|RSA PRIVATE KEY)-----', content, re.DOTALL)
 
 def check_github_access_token(content):
     return re.search(r'ghp_[0-9a-zA-Z]{36}', content)
