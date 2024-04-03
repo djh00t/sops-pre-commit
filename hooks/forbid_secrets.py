@@ -93,6 +93,22 @@ def is_kubernetes_secret(data):
     """
     return data.get('kind', '').lower() == 'secret' and data.get('apiVersion', '').startswith('v1')
 
+def check_kubernetes_secret_file(filename):
+    """
+    Checks if the given filename contains a Kubernetes secret.
+    """
+    try:
+        with open(filename, 'r') as file:
+            documents = yaml.safe_load_all(file)
+            for doc in documents:
+                if is_kubernetes_secret(doc):
+                    print(f"Detected Kubernetes Secret in file: {filename}")
+                    encrypt_file(filename)
+                    return True
+    except yaml.YAMLError as e:
+        print(f"Error parsing YAML file {filename}: {e}")
+    return False
+
 def contains_secret(filename, hook_id):
     """
     Checks if the given filename contains an unencrypted secret by searching for patterns.
@@ -107,16 +123,6 @@ def contains_secret(filename, hook_id):
         return True
     return False
 
-    try:
-        with open(filename, 'r') as file:
-            documents = yaml.safe_load_all(file)
-            for doc in documents:
-                if is_kubernetes_secret(doc):
-                    # Additional checks for SOPS and Kustomize can be implemented here
-                    return True
-    except yaml.YAMLError as e:
-        print(f"Error parsing YAML file {filename}: {e}")
-    return False
 
 def is_sops_installed():
     """
@@ -166,6 +172,11 @@ def main(argv=None):
     parser.add_argument("filenames", nargs="*", help="filenames to check")
     parser.add_argument("--exclude", nargs="*", help="regex patterns for files to exclude from checks", default=[])
     args = parser.parse_args(argv)
+    parser.add_argument("--disable-hook", nargs="*", help="hook IDs to disable", default=[])
+    disabled_hooks = args.disable_hook
+    if 'kubernetes-secret' not in disabled_hooks:
+        kubernetes_secret_files = [f for f in args.filenames if check_kubernetes_secret_file(f)]
+        files_with_secrets.extend(kubernetes_secret_files)
     files_with_secrets = [f for f in args.filenames if contains_secret(f)]
     EXCLUDE_PATTERNS = args.exclude
     files_with_secrets = [f for f in args.filenames if not is_excluded(f, EXCLUDE_PATTERNS) and contains_secret(f)]
