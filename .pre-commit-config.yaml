@@ -1,82 +1,134 @@
-# vim:ff=unix ts=2 sw=2 ai expandtab
+# vim: ff=unix ts=2 sw=2 ai expandtab
 ---
+# .pre-commit-config.yaml
+
+# Define the pre-commit hooks
 repos:
-- repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.3.0
-  hooks:
-  - id: check-added-large-files
-  - id: check-merge-conflict
-  - id: detect-private-key
-  - id: trailing-whitespace
-- repo: local
-  rev: v1.0.0
-  hooks:
-    - id: aws-access-key-id
-      name: Check for AWS Access Key IDs
-      entry: python /Users/djh/work/src/github.com/djh00t/sops-pre-commit/hooks/forbid_secrets.py --hook-id aws-access-key-id
-      language: system
-      files: ((^|/)*.(ya?ml)$)
-    - id: aws-secret-access-key
-      name: Check for AWS Secret Access Keys
-      entry: python /Users/djh/work/src/github.com/djh00t/sops-pre-commit/hooks/forbid_secrets.py --hook-id aws-secret-access-key
-      language: system
-      files: ((^|/)*.(ya?ml)$)
-    - id: gcp-api-key
-      name: Check for GCP API Keys
-      entry: python /Users/djh/work/src/github.com/djh00t/sops-pre-commit/hooks/forbid_secrets.py --hook-id gcp-api-key
-      language: system
-      files: ((^|/)*.(ya?ml)$)
-    - id: generic-api-key
-      name: Check for Generic API Keys
-      entry: python /Users/djh/work/src/github.com/djh00t/sops-pre-commit/hooks/forbid_secrets.py --hook-id generic-api-key
-      language: system
-      files: ((^|/)*.(ya?ml)$)
-    - id: github-access-token
-      name: Check for GitHub Access Tokens
-      entry: python /Users/djh/work/src/github.com/djh00t/sops-pre-commit/hooks/forbid_secrets.py --hook-id github-access-token
-      language: system
-      files: ((^|/)*.(ya?ml)$)
-    - id: google-oauth-client-secret
-      name: Check for Google OAuth Client Secrets
-      entry: python /Users/djh/work/src/github.com/djh00t/sops-pre-commit/hooks/forbid_secrets.py --hook-id google-oauth-client-secret
-      language: system
-      files: ((^|/)*.(ya?ml)$)
-    - id: jwt
-      name: Check for JSON Web Tokens (JWT)
-      entry: python /Users/djh/work/src/github.com/djh00t/sops-pre-commit/hooks/forbid_secrets.py --hook-id jwt
-      language: system
-      files: ((^|/)*.(ya?ml)$)
-    - id: rsa-private-key
-      name: Check for RSA Private Keys
-      entry: python /Users/djh/work/src/github.com/djh00t/sops-pre-commit/hooks/forbid_secrets.py --hook-id rsa-private-key
-      language: system
-      files: ((^|/)*.(ya?ml)$)
-    - id: slack-webhook-url
-      name: Check for Slack Webhook URLs
-      entry: python /Users/djh/work/src/github.com/djh00t/sops-pre-commit/hooks/forbid_secrets.py --hook-id slack-webhook-url
-      language: system
-      files: ((^|/)*.(ya?ml)$)
-    - id: ssh-private-key
-      name: Check for SSH Private Keys
-      entry: python /Users/djh/work/src/github.com/djh00t/sops-pre-commit/hooks/forbid_secrets.py --hook-id ssh-private-key
-      language: system
-      files: ((^|/)*.(ya?ml)$)
-    - id: kubernetes-secret
-      name: Check for unencrypted Kubernetes secrets
-      entry: python /Users/djh/work/src/github.com/djh00t/sops-pre-commit/hooks/forbid_secrets.py --hook-id kubernetes-secret
-      language: system
-      files: ((^|/)*.(ya?ml)$)
-- repo: https://github.com/adrienverge/yamllint
-  rev: v1.28.0
-  hooks:
-  - id: yamllint
-    args:
-    - -c
-    - .github/yamllint.config.yaml
-- repo: https://github.com/Lucas-C/pre-commit-hooks
-  rev: v1.3.1
-  hooks:
-  - id: forbid-crlf
-  - id: remove-crlf
-  - id: forbid-tabs
-  - id: remove-tabs
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-json
+      - id: check-case-conflict
+      - id: detect-private-key
+
+  - repo: https://github.com/psf/black
+    rev: 24.4.2  # Use the latest stable release
+    hooks:
+      - id: black
+        language_version: python3  # Specify the Python version
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.1.0  # Use the latest stable release
+    hooks:
+      - id: flake8
+        additional_dependencies: [flake8-bugbear]  # Example of adding additional flake8 plugins
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.10.1  # Use the latest stable release
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-PyYAML]  # Example of adding additional mypy stubs
+
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2  # Use the latest stable release
+    hooks:
+      - id: isort
+        name: isort (python)  # Optional, customize hook name
+        args: ['--profile', 'black']  # Example of passing arguments to isort
+        language_version: python3  # Specify the Python version
+
+  - repo: https://github.com/pylint-dev/pylint
+    rev: v3.2.5  # Use the latest stable release
+    hooks:
+      - id: pylint
+        args: ['--disable=R,C']  # Example of disabling specific pylint categories
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.28.0
+    hooks:
+      - id: yamllint
+        args:
+          - -c
+          - .github/yamllint.config.yaml
+
+  - repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.3.1
+    hooks:
+      - id: forbid-crlf
+      - id: remove-crlf
+      - id: forbid-tabs
+      - id: remove-tabs
+
+  - repo: local
+    hooks:
+      - id: aws-access-key-id
+        name: Check for AWS Access Key IDs
+        entry: python hooks/forbid_secrets.py --hook-id aws-access-key-id
+        language: system
+        files: ((^|/)*.(ya?ml)$)
+        warn-only: false
+      - id: aws-secret-access-key
+        name: Check for AWS Secret Access Keys
+        entry: python hooks/forbid_secrets.py --hook-id aws-secret-access-key
+        language: system
+        files: ((^|/)*.(ya?ml)$)
+        warn-only: false
+      - id: gcp-api-key
+        name: Check for GCP API Keys
+        entry: python hooks/forbid_secrets.py --hook-id gcp-api-key
+        language: system
+        files: ((^|/)*.(ya?ml)$)
+        warn-only: false
+      - id: generic-api-key
+        name: Check for Generic API Keys
+        entry: python hooks/forbid_secrets.py --hook-id generic-api-key
+        language: system
+        files: ((^|/)*.(ya?ml)$)
+        warn-only: false
+      - id: github-access-token
+        name: Check for GitHub Access Tokens
+        entry: python hooks/forbid_secrets.py --hook-id github-access-token
+        language: system
+        files: ((^|/)*.(ya?ml)$)
+        warn-only: false
+      - id: google-oauth-client-secret
+        name: Check for Google OAuth Client Secrets
+        entry: python hooks/forbid_secrets.py --hook-id google-oauth-client-secret
+        language: system
+        files: ((^|/)*.(ya?ml)$)
+        warn-only: false
+      - id: jwt
+        name: Check for JSON Web Tokens (JWT)
+        entry: python hooks/forbid_secrets.py --hook-id jwt
+        language: system
+        files: ((^|/)*.(ya?ml)$)
+        warn-only: false
+      - id: rsa-private-key
+        name: Check for RSA Private Keys
+        entry: python hooks/forbid_secrets.py --hook-id rsa-private-key
+        language: system
+        files: ((^|/)*.(ya?ml)$)
+        warn-only: false
+      - id: slack-webhook-url
+        name: Check for Slack Webhook URLs
+        entry: python hooks/forbid_secrets.py --hook-id slack-webhook-url
+        language: system
+        files: ((^|/)*.(ya?ml)$)
+        warn-only: false
+      - id: ssh-private-key
+        name: Check for SSH Private Keys
+        entry: python hooks/forbid_secrets.py --hook-id ssh-private-key
+        language: system
+        files: ((^|/)*.(ya?ml)$)
+        warn-only: false
+      - id: kubernetes-secret
+        name: Check for unencrypted Kubernetes secrets
+        entry: python hooks/forbid_secrets.py --hook-id kubernetes-secret
+        language: system
+        files: ((^|/)*.(ya?ml)$)
+        warn-only: false
