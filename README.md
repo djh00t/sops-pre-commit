@@ -3,11 +3,30 @@ This is a fork of
 [onedr0p/sops-pre-commit](https://github.com/onedr0p/sops-pre-commit) with
 additional secret checks and SOPS encryption of unencrypted secrets added.
 
-This [pre-commit](https://pre-commit.com/) hook checks for unencrypted Kubernetes and other types of secrets in manifest files and encrypts them using SOPS.
+This [pre-commit](https://pre-commit.com/) hook checks for unencrypted Kubernetes and other types of secrets in manifest files and encrypts them using SOPS. It also provides functionality to encrypt or decrypt files using SOPS.
 
-## Usage
+## Installation (Pre-commit Hook)
 
-To use this pre-commit hook, add the following to your `.pre-commit-config.yaml` file in your git repository:
+1. Install pre-commit:
+   ```
+   pip install pre-commit
+   ```
+
+2. Install SOPS:
+   - For macOS: `brew install sops`
+   - For other platforms, see the [SOPS release page](https://github.com/mozilla/sops/releases).
+
+3. Add the pre-commit hook configuration to your `.pre-commit-config.yaml` as shown above.
+
+4. Run `pre-commit install` to set up the git hook scripts.
+
+Now pre-commit will run automatically on `git commit`!
+
+## Configuration
+
+To use this pre-commit hook, add the following to
+`.pre-commit-config.yaml` in the root of your git repository. The plugin will be
+installed and run each time `pre-commit` is run:
 
 ```yaml
 - repo: https://github.com/djh00t/sops-pre-commit
@@ -27,15 +46,7 @@ To use this pre-commit hook, add the following to your `.pre-commit-config.yaml`
     - id: google-oauth-client-secret
 ```
 
-## Configuration
-
-The hook can be configured by modifying the `.pre-commit-config.yaml` file. You can specify different hook ids to check for various types of secrets, such as AWS access keys, SSH private keys, etc.
-
-## Installation
-
-To install this pre-commit hook, you need to have pre-commit and SOPS installed on your system.
-
-## Supported Hooks
+## Supported Hooks (Pre-commit Hook)
 
 This pre-commit plugin provides several hooks to check for different types of secrets. Below is a list of available hook ids and their descriptions:
 
@@ -50,27 +61,39 @@ This pre-commit plugin provides several hooks to check for different types of se
 - `slack-webhook-url`: Checks for Slack webhook URLs that might be hardcoded in files.
 - `google-oauth-client-secret`: Checks for Google OAuth client secrets that might be hardcoded in files.
 
-To configure a hook, add the corresponding `id` to your `.pre-commit-config.yaml` file and specify any additional arguments if needed.
-
-1. Install pre-commit:
-   ```
-   pip install pre-commit
-   ```
-
-2. Install SOPS:
-   - For macOS: `brew install sops`
-   - For other platforms, see the [SOPS release page](https://github.com/mozilla/sops/releases).
-
-3. Add the pre-commit hook configuration to your `.pre-commit-config.yaml` as shown above.
-
-4. Run `pre-commit install` to set up the git hook scripts.
-
-Now pre-commit will run automatically on `git commit`!
-
 ## Requirements
 
 * Pre-commit 1.2 or later
 * SOPS 3.8.1 or later (Earlier versions may work but are untested)
+
+## Using the Encrypt/Decrypt script without pre-commit
+
+The `encrypt_decrypt_sops.py` script provides functionality to encrypt or decrypt files using SOPS. It can handle individual files, directories, and patterns with wildcards. The script determines whether files are already encrypted or decrypted and performs the opposite action, skipping files that do not require processing.
+
+### Usage
+
+To use the script, run:
+
+```sh
+python hooks/encrypt_decrypt_sops.py [options] <files or directories>
+```
+
+Options:
+- `-d`, `--debug`: Enable debug output.
+
+### Example
+
+To encrypt all files in a directory:
+
+```sh
+python hooks/encrypt_decrypt_sops.py path/to/your/directory
+```
+
+To decrypt a specific file:
+
+```sh
+python hooks/encrypt_decrypt_sops.py path/to/your/file
+```
 
 ## License
 
