@@ -1,0 +1,28 @@
+###
+### EXAMPLE .sops.yaml FILE
+###
+# This file is an example of how to configure sops to encrypt and decrypt
+# Kubernetes secrets. This file should be placed in the root of your
+# repository. It will be used by sops to determine how to encrypt and decrypt
+
+---
+creation_rules:
+    # Select all files ending in .sops.yaml but not files whose entire name is
+    # .sops.yaml also look for files with secrets in the name and ending in
+    # .yaml or .json (e.g. secrets.yaml, secrets.json, my-secrets.yaml,
+    # encrypted.sops.json, etc.) and apply the following rules to them.
+    - path_regex: ^(.*/)?.*(secrets|.*\.sops)\.(ya?ml|json)$
+      ##
+      ## NOTE: use of encrypted_regex and unencrypted_regex are mutually
+      ## exclusive. You can only use one or the other.
+      ##
+      ## encrypted_regex
+      # Select only files containing data and stringData fields
+      # encrypted_regex: ^(data|stringData)$
+      # Select all fields (not recommended!!!)
+      # encrypted_regex: .*
+      ## unencrypted_regex (recommended method)
+      # Do not encrypt the following header fields:
+      unencrypted_regex: ^(apiVersion|kind|metadata|type)$
+      ## AGE Public Key (recipient)
+      age: <PUBLIC_KEY>
