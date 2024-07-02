@@ -26,15 +26,11 @@ install:
 	$(PIP) install --upgrade pip-tools
 	$(PIP_COMPILE) requirements-dev.in
 	$(PIP) install --upgrade -r requirements-dev.txt
-	make setup_sops_files
 	pre-commit install --overwrite
 
 # Test target
 test:
 	$(PYTHON) -m pytest -v
-
-setup_sops_files:
-	$(PYTHON) -c "from hooks.encrypt_decrypt_sops import setup_sops_files; setup_sops_files()"
 
 # Clean target
 clean:
@@ -50,6 +46,8 @@ clean:
 	rm -rf build
 	rm -rf *.egg-info
 	rm -rf .aider*
+	rm -rf requirements.txt
+	rm -rf requirement-dev.txt
 
 # Compile target
 compile:
