@@ -1,18 +1,10 @@
-"""
-This script is a pre-commit hook that checks for unencrypted Kubernetes secrets in files.
-It uses regular expressions to identify secret definitions and ignores them if they are
-encrypted with SOPS or marked for deletion in Kustomize patches. If an unencrypted secret
-is found, it exits with a non-zero status code to block the commit.
-"""
-from __future__ import print_function
-import os
-import argparse
+import re
+import subprocess
 import yaml
 import sys
-import subprocess
-import re
+import argparse
+import os
 
-SOPS_REGEX = r"ENC.AES256"
 KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
 
 CREATION_RULES_PATH_REGEX = None  # This will be set after reading from .sops.yaml
@@ -21,8 +13,20 @@ root_dir = subprocess.getoutput('git rev-parse --show-toplevel')
 
 global key_age_public
 global key_age_private
-key_age_public = open(os.path.join(root_dir, '.age.pub')).read().strip()
-key_age_private = open(os.path.join(root_dir, 'age.agekey')).readlines()[1].strip()
+
+# Read .age.pub file or set key_age_public to None if it doesn't exist
+try:
+    with open(os.path.join(root_dir, '.age.pub'), 'r') as file:
+        key_age_public = file.read().strip()
+except FileNotFoundError:
+    key_age_public = None
+
+# Read age.agekey file or set key_age_private to None if it doesn't exist
+try:
+    with open(os.path.join(root_dir, 'age.agekey'), 'r') as file:
+        key_age_private = file.readlines()[1].strip()
+except FileNotFoundError:
+    key_age_private = None
 
 DEBUG_LEVEL = 0  # Set the desired debug level here, 0 for no debug output
 
@@ -51,13 +55,32 @@ def encrypt_file(file_path):
         debug(0, "File Status:   ENCRYPTED")
         debug(0, "Action:        SKIPPING")
 
+def check_contains_key_age_public(file_path):
+    """
+    Checks if the given file contains the key_age_public string and returns True if it does.
+    """
+    try:
+        with open(file_path, 'r') as file:
+            content = file.read()
+        if key_age_public and key_age_public in content:
+            return True
+    except FileNotFoundError:
+        debug(2, f"File {key_age_public} not found.")
+    return False
+
 def check_if_encrypted(file_path):
     """
-    Checks if the given file is encrypted by looking for the SOPS encryption marker.
+    Checks if the given file is encrypted by looking for the SOPS encryption markers.
     """
     with open(file_path, 'r') as file:
         content = file.read()
-    return '- recipient: ' + key_age_public in content
+    
+    encrypted_file_regex = re.compile(
+        r'^(-----BEGIN (AGE ENCRYPTED FILE|PGP MESSAGE)-----[\s\S]*?-----END (AGE ENCRYPTED FILE|PGP MESSAGE)-----|ENC\[AES256_GCM,data:.*?\]|encrypted_regex:.*)$',
+        re.MULTILINE
+    )
+
+    return bool(encrypted_file_regex.search(content))
 
 def check_aws_access_key_id(content):
     return re.search(r'AKIA[0-9A-Z]{16}', content)
@@ -122,26 +145,11 @@ def is_excluded(filename, exclude_patterns):
     """
     return any(re.search(pattern, filename) for pattern in exclude_patterns)
 
-def is_encrypted_with_sops(filename):
-    """
-    Checks if the given filename is encrypted with SOPS.
-    """
-    with open(filename, 'r') as file:
-        return SOPS_REGEX in file.read()
-
 def is_kubernetes_secret(data):
     """
     Determines if the provided data structure represents a Kubernetes secret.
     """
     return data.get('kind', '').lower() == 'secret' and data.get('apiVersion', '').startswith('v1')
-
-def check_if_encrypted(file_path):
-    """
-    Checks if the given file is encrypted by looking for the SOPS encryption marker.
-    """
-    with open(file_path, 'r') as file:
-        content = file.read()
-    return '- recipient: ' + key_age_public in content
 
 def check_kubernetes_secret_file(filename):
     """
@@ -169,6 +177,8 @@ def contains_secret(filename, hook_id):
     """
     if check_if_encrypted(filename):
         debug(0, "File is already encrypted with SOPS: {}".format(filename))
+        if check_contains_key_age_public(filename):
+            print(f"Detected key_age_public in encrypted file: {filename}")
         return False
 
     with open(filename, 'r') as file:
@@ -180,6 +190,7 @@ def contains_secret(filename, hook_id):
         encrypt_file(filename)
         return True
     return False
+
 
 def is_sops_installed():
     """
@@ -222,9 +233,6 @@ def main(argv=None):
     global CREATION_RULES_PATH_REGEX
     CREATION_RULES_PATH_REGEX = load_creation_rules_path_regex()
 
-    """
-    Main function that parses arguments and checks each file for secrets.
-    """
     parser = argparse.ArgumentParser(description="Checks for unencrypted Kubernetes secrets.")
     parser.add_argument("filenames", nargs="*", help="Filenames to check.")
     parser.add_argument("--hook-id", help="Identifier of the hook.", required=True)
@@ -255,8 +263,4 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    """
-    If this script is executed as the main module, start the main function.
-    """
     sys.exit(main(sys.argv[1:]))
-
