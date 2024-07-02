@@ -122,7 +122,7 @@ dmypy.json
 cython_debug/
 
 # Ignore directories starting with a "."
-*/
+\.*/
 
 # Ignore temp files and directories
 tmp/**
