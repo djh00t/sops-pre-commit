@@ -1,3 +1,4 @@
+# .pre-commit-hooks.yaml
 - id: aws-access-key-id
   name: Check for AWS Access Key IDs
   entry: forbid_secrets --hook-id aws-access-key-id
