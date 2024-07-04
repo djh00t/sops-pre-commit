@@ -153,4 +153,4 @@ repos:
         entry: python hooks/forbid_secrets.py --hook-id kubernetes-secret
         language: system
         files: ((^|/)*.(ya?ml)$)
-        exclude: tests/.*\-fail\.ya?ml$
+        exclude: tests/.*\.ya?ml$
