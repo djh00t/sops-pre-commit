@@ -46,8 +46,9 @@ clean:
 	rm -rf build
 	rm -rf *.egg-info
 	rm -rf .aider*
-	rm -rf requirements.txt
-	rm -rf requirement-dev.txt
+	rm -rf requirements-dev.txt
+	touch requirements-dev.txt
+	rm -rf sops_pre_commit.egg-info
 
 # Compile target
 compile:
