@@ -6,3 +6,10 @@ argparse
 datetime
 PyYAML
 sops
+black
+pylint
+flake8
+mypy
+yamllint
+dlint
+pyyaml
