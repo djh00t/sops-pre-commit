@@ -1,8 +1,14 @@
-from setuptools import find_packages, setup
+"""
+Setup configuration for the sops-pre-commit package.
+"""
+
+from setuptools import find_packages, setup  # type: ignore
 
 setup(
     name="sops-pre-commit",
-    description="Check for unencrypted Kubernetes secrets in manifest files and encrypt them before allowing git to push. Forked from https://github.com/onedr0p/sops-pre-commit",
+    description="Check for unencrypted Kubernetes secrets in manifest files"
+    "and encrypt them before allowing git to push. "
+    "Forked from https://github.com/onedr0p/sops-pre-commit",
     url="https://github.com/djh00t/sops-pre-commit",
     version="1.0.0",
     author="David Hooton",
