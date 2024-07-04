@@ -1,12 +1,13 @@
-# vim: ff=unix ts=2 sw=2 ai expandtab
+#   vim: ff=unix ts=2 sw=2 ai expandtab
 ---
-# .pre-commit-config.yaml for development environment
-
-# Define the pre-commit hooks
+#   .pre-commit-config.yaml for development environment
+fail_fast: true
+#   Define the pre-commit hooks
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
+      - id: check-ast
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
@@ -14,54 +15,57 @@ repos:
       - id: check-merge-conflict
       - id: check-json
       - id: check-case-conflict
-      - id: detect-private-key
+      #    This hook is disabled because we deal with this in our
+      #    sops-pre-commit hook and also in black
+      #    - id: detect-private-key
 
   - repo: https://github.com/psf/black
-    rev: 24.4.2 # Use the latest stable release
+    rev: 24.4.2 #   Use the latest stable release
     hooks:
       - id: black
-        language_version: python3 # Specify the Python version
+        language_version: python3 #   Specify the Python version
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.10.1 #   Use the latest stable release
+    hooks:
+      - id: mypy
+        additional_dependencies: ["types-PyYAML"] #   Example of adding additional mypy stubs
+
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2 #   Use the latest stable release
+    hooks:
+      - id: isort
+        name: isort (python) #   Optional, customize hook name
+        args: ["--profile", "black"] #   Example of passing arguments to isort
+        language_version: python3 #   Specify the Python version
 
   - repo: https://github.com/PyCQA/flake8
-    rev: 7.1.0 # Use the latest stable release
+    rev: 7.1.0 #   Use the latest stable release
     hooks:
       - id: flake8
         additional_dependencies: [
-            dlint,                      # Tool for encouraging best coding practices and helping ensure Python code is secure.
-            flake8-alphabetize,         # Checking the order of import statements and the __all__ list.
-            #flake8-bandit,              # Wrapper around bandit - https://github.com/PyCQA/bandit
-            #flake8-bugbear,             # Finding likely bugs and design problems in your program.
-            #flake8-docstring-checker,   # Checks if everything has a docstring.
-            #flake8-docstrings-complete, # Linter that checks docstrings of functions, methods and classes.
-            #flake8-fastapi,             # Checks FastAPI code against opinionated style rules.
-            #flake8-github,              # Generates GitHub annotation for PR's.
-            #flake8-requirements,        # Package requirements checker.
-            #flake8-spellcheck,          # Spellcheck variables, classnames, comments, docstrings etc.
-            #flake8-sphinx-links,        # Check docstrings for double backticked strings which should be links to the Python documentation.
-            #flake8-unused-arguments,    # Warn against unused arguments in functions.
-            #pep8-naming,                # Check the PEP-8 naming conventions.
-            #pydoclint,                  # A Python docstring linter that checks arguments, returns, yields, and raises sections.
-          ] # Additional flake8 plugins
+          dlint, #   Tool for encouraging best coding practices and helping ensure Python code is secure.
+          # flake8-alphabetize,         #   Checking the order of import statements and the __all__ list.
+          # flake8-bandit,              #   Wrapper around bandit - https://github.com/PyCQA/bandit
+          # flake8-bugbear,             #   Finding likely bugs and design problems in your program.
+          # flake8-docstring-checker,   #   Checks if everything has a docstring.
+          # flake8-docstrings-complete, #   Linter that checks docstrings of functions, methods and classes.
+          # flake8-fastapi,             #   Checks FastAPI code against opinionated style rules.
+          # flake8-github,              #   Generates GitHub annotation for PR's.
+          # flake8-requirements,        #   Package requirements checker.
+          # flake8-spellcheck,          #   Spellcheck variables, classnames, comments, docstrings etc.
+          # flake8-sphinx-links,        #   Check docstrings for double backticked strings which should be links to the Python documentation.
+          # flake8-unused-arguments,    #   Warn against unused arguments in functions.
+          # pep8-naming,                #   Check the PEP-8 naming conventions.
+          # pydoclint,                  #   A Python docstring linter that checks arguments, returns, yields, and raises sections.
+        ] # Additional flake8 plugins
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.10.1 # Use the latest stable release
-    hooks:
-      - id: mypy
-        additional_dependencies: [types-PyYAML] # Example of adding additional mypy stubs
-
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.13.2 # Use the latest stable release
-    hooks:
-      - id: isort
-        name: isort (python) # Optional, customize hook name
-        args: ["--profile", "black"] # Example of passing arguments to isort
-        language_version: python3 # Specify the Python version
 
   - repo: https://github.com/pylint-dev/pylint
-    rev: v3.2.5 # Use the latest stable release
+    rev: v3.2.5 #   Use the latest stable release
     hooks:
       - id: pylint
-        args: ["--disable=R,C"] # Example of disabling specific pylint categories
+        args: ["--disable=R,C"] #   Example of disabling specific pylint categories
 
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.28.0
@@ -86,6 +90,9 @@ repos:
         entry: python hooks/forbid_secrets.py --hook-id aws-access-key-id
         language: system
         files: ((^|/)*.(ya?ml)$)
+        # Exclude all yaml files in the tests directory that end with
+        # -fail.yaml
+        exclude: tests/.*\-fail\.ya?ml$
 
       - id: aws-secret-access-key
         name: Check for AWS Secret Access Keys
@@ -146,3 +153,4 @@ repos:
         entry: python hooks/forbid_secrets.py --hook-id kubernetes-secret
         language: system
         files: ((^|/)*.(ya?ml)$)
+        exclude: tests/.*\-fail\.ya?ml$
