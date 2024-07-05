@@ -1,0 +1,82 @@
+---
+name: Release
+
+on:  # yaml-lint: disable-line
+  push:
+    branches:
+      - main
+  workflow_dispatch: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4.0.2
+        with:
+          node-version: "21"
+
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install Node.js dependencies
+        run: npm install
+
+      - name: Configure Git
+        run: |
+          git config --global user.email \
+          "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+
+      - name: Create release branch
+        run: |
+          EPOCH_TIME=$(date +%s)
+          echo "EPOCH_TIME=$EPOCH_TIME" >> $GITHUB_ENV &&
+          RELEASE_BRANCH="release-${EPOCH_TIME}" &&
+          echo "RELEASE_BRANCH=$RELEASE_BRANCH" >> $GITHUB_ENV
+          git checkout -b $RELEASE_BRANCH
+
+      - name: Run semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+          RELEASE_BRANCH: ${{ env.RELEASE_BRANCH }}
+        run: npx semantic-release
+
+  merge-pr:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config --global user.email \
+          "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+
+      - name: Setup gh CLI
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" > .github_token &&
+          gh auth login --with-token < .github_token
+
+      - name: Merge Pull Request
+        run: |
+          PR=$(gh pr list --state open --json number --jq '.[0].number')
+          if [ -n "$PR" ]; then
+            gh pr merge $PR --merge
+          fi
