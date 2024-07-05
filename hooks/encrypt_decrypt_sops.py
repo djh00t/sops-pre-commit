@@ -16,9 +16,12 @@ import subprocess
 import sys
 from datetime import datetime
 
+from ruamel.yaml import YAML
+
 root_dir = subprocess.getoutput("git rev-parse --show-toplevel")
 
-# Read .age.pub file or set key_age_public to None if it doesn't exist
+yaml = YAML(typ="rt")
+
 try:
     with open(
         os.path.join(root_dir, ".age.pub"), "r", encoding="utf-8"
@@ -27,7 +30,6 @@ try:
 except FileNotFoundError:
     KEY_AGE_PUBLIC = ""
 
-# Read age.agekey file or set key_age_private to None if it doesn't exist
 try:
     with open(
         os.path.join(root_dir, "age.agekey"), "r", encoding="utf-8"
