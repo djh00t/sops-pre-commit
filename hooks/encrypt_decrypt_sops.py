@@ -15,7 +15,6 @@ import socket
 import subprocess
 import sys
 from datetime import datetime
-
 from ruamel.yaml import YAML
 
 root_dir = subprocess.getoutput("git rev-parse --show-toplevel")
