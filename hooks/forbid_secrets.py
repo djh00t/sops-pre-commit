@@ -11,7 +11,7 @@ import subprocess
 import sys
 from typing import Optional
 
-import yaml  # type: ignore
+from ruamel.yaml import YAML, YAMLError
 
 KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
 
@@ -41,6 +41,8 @@ def read_key_file(
     except FileNotFoundError:
         return ""
 
+
+yaml = YAML(typ="rt")
 
 key_age_public = read_key_file(os.path.join(root_dir, ".age.pub"))
 key_age_private = read_key_file(
@@ -314,7 +316,7 @@ def check_kubernetes_secret_file(filename: str) -> bool:
     """
     try:
         with open(filename, "r", encoding="utf-8") as file:
-            documents = yaml.safe_load_all(file)
+            documents = yaml.load_all(file)
             for doc in documents:
                 if isinstance(doc, list):
                     for item in doc:
@@ -344,7 +346,7 @@ def check_kubernetes_secret_file(filename: str) -> bool:
                         return True
                     print(f"File is already encrypted with SOPS: {filename}")
                     return False
-    except yaml.YAMLError as e:
+    except YAMLError as e:
         print(
             f"ERROR: Error parsing YAML file {filename}: {e}", file=sys.stderr
         )
