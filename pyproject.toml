@@ -1,8 +1,17 @@
+[build-system]
+requires = ["setuptools >= 70.0"]
+build-backend = "setuptools.build_meta"
+
 [tool.black]
 line-length = 79
 target-version = ["py36", "py37", "py38", "py39", "py310", "py311", "py312", "py313"]
 include = "\\.pyi?$"
 exclude = "\\.eggs|\\.git|\\.hg|\\.mypy_cache|\\.tox|\\.venv|_build|buck-out|build|dist"
+# Add configuration for flake8 to enforce import order
+# extra = [
+#   "flake8-import-order",
+# ]
+
 
 [tool.flake8]
 # ignore = ["E501"]
@@ -20,7 +29,6 @@ disable = [
 
 [tool.pylint.FORMAT]
 max-line-length = 79
-
 
 [tool.yapf]
 based_on_style = 'google'
