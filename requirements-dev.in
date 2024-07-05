@@ -13,3 +13,5 @@ PyYAML
 pyyaml
 sops
 yamllint
+ruamel.yaml
+isort
