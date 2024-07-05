@@ -10,7 +10,6 @@ import re
 import subprocess
 import sys
 from typing import Optional
-
 from ruamel.yaml import YAML, YAMLError
 
 KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
