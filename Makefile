@@ -34,21 +34,38 @@ test:
 
 # Clean target
 clean:
-	pre-commit clean
-	find . -type f -name '*.pyc' -delete
-	find . -type d -name '__pycache__' -exec rm -rf {} +
-	rm -rf .pytest_cache
-	rm -rf .mypy_cache
-	rm -rf .coverage
-	rm -rf htmlcov
-	rm -rf .tox
-	rm -rf dist
-	rm -rf build
-	rm -rf *.egg-info
-	rm -rf .aider*
-	rm -rf requirements-dev.txt
-	touch requirements-dev.txt
-	rm -rf sops_pre_commit.egg-info
+	@echo "Cleaning up repo.............................................................🧹"
+	@make push-prep
+	@pre-commit clean
+	@find . -type f -name '*.pyc' -delete
+	@find . -type d -name '__pycache__' -exec rm -rf {} +
+	@rm -rf .aider*
+	@rm -rf .coverage
+	@rm -rf .mypy_cache
+	@rm -rf .pytest_cache
+	@rm -rf .tox
+	@rm -rf *.egg-info
+	@rm -rf build
+	@rm -rf dist
+	@rm -rf htmlcov
+	@rm -rf node_modules
+	@echo "Repo cleaned up..............................................................✅"
+
+# Pre-push cleanup target
+push-prep:
+	@echo "Removing temporary files.....................................................🧹"
+	@find . -type f -name '*.pyc' -delete
+	@if [ -f requirements.txt ]; then \
+		echo "Resetting requirements.txt to empty state....................................✅"; \
+		rm -rf requirements.txt; \
+		touch requirements.txt; \
+	fi
+	@if [ -f requirements-dev.txt ]; then \
+		echo "Resetting requirements-dev.txt to empty state................................✅"; \
+		rm -rf requirements-dev.txt; \
+		touch requirements-dev.txt; \
+	fi
+	@echo "Removed temporary files......................................................✅"
 
 # Compile target
 compile:
