@@ -44,6 +44,11 @@ def read_key_file(
 yaml = YAML(typ="rt")
 
 key_age_public = read_key_file(os.path.join(root_dir, ".age.pub"))
+if not key_age_public:
+    print(
+        "WARNING: .age.pub not found. Skipping tests that require it.",
+        file=sys.stderr,
+    )
 key_age_private = read_key_file(
     os.path.join(root_dir, "age.agekey"), line_number=1
 )
