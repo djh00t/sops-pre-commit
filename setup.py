@@ -34,7 +34,7 @@ with open("README.md", encoding="utf-8") as f:
 
 setup(
     name="sops-pre-commit",
-    version=get_version(),
+    version="0.0.3",
     packages=find_packages(),
     description="Check for unencrypted secrets and encrypt them using sops and"
     "age/gpg. Forked from https://github.com/onedr0p/sops-pre-commit",
