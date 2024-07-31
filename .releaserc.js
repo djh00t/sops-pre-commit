@@ -8,7 +8,13 @@ module.exports = {
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
     "@semantic-release/changelog",
-    "@semantic-release/github",
+    ["@semantic-release/github", {
+      "assets": [
+        {"path": "dist/**", "label": "Distribution"}
+      ],
+      "successComment": false,
+      "failComment": false
+    }],
     ["@semantic-release/git", {
       "assets": ["README.md", "pyproject.toml", "CHANGELOG.md"],
       "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
