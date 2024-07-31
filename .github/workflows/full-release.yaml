@@ -101,7 +101,7 @@ jobs:
           title: 'Release PR'
           body: 'This PR contains the changes for the next release.'
           draft: false
-          auto-merge: true
+          # auto-merge: true
 
       - name: Merge Pull Request
         uses: actions/github-script@v4
