@@ -1,16 +1,11 @@
-[build-system]
-requires = ["setuptools >= 70.0"]
-build-backend = "setuptools.build_meta"
+[tool.semantic_release]
+version = "0.0.3"
 
 [tool.black]
 line-length = 79
 target-version = ["py36", "py37", "py38", "py39", "py310", "py311", "py312", "py313"]
 include = "\\.pyi?$"
 exclude = "\\.eggs|\\.git|\\.hg|\\.mypy_cache|\\.tox|\\.venv|_build|buck-out|build|dist"
-# Add configuration for flake8 to enforce import order
-# extra = [
-#   "flake8-import-order",
-# ]
 
 
 [tool.flake8]
@@ -45,3 +40,8 @@ ignore_patterns = ["temp/**/*.py", "temp2/*.py"]
 exclude = 'tmp/hooks'
 sqlite_cache = true
 install_types = true
+
+[tool.pytest.ini_options]
+addopts = "-ra -q"
+testpaths = ["tests"]
+minversion = "8.3.1 "
