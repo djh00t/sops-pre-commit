@@ -138,3 +138,6 @@ temp/**
 # PROJECT SPECIFIC IGNORES
 # Ignore aider metadata
 .aider**
+
+# Ignore node_modules
+node_modules/
