@@ -74,11 +74,11 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
 
-      - name: Run semantic-release
+      - name: Run semantic-release with custom config
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PYPI_USER_AGENT: ${{ secrets.PYPI_USER_AGENT }}
-        run: npx semantic-release
+        run: npx semantic-release --extends .releaserc.full.js
 
   create-pull-request:
     name: Create Pull Request
