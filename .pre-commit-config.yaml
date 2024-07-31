@@ -55,7 +55,7 @@ repos:
     rev: 7.1.0
     hooks:
       - id: flake8
-        #args: ['--config=pyproject.toml']
+        args: ['--config=pyproject.toml']
         #additional_dependencies: [
           # Tool for encouraging best coding practices and helping ensure
           # Python code is secure.
@@ -114,3 +114,19 @@ repos:
       - id: pylint
       # Example of disabling specific pylint categories
       # args: ["--disable=R,C"]
+
+#   - repo: https://github.com/djh00t/sops-pre-commit
+#     rev: v0.0.2f
+#     hooks:
+# #      - id: kubernetes-secret
+# #        exclude: (tmpl\/.*.sops\.ya?ml|knative\-operator\.ya?ml)
+#       - id: aws-access-key-id
+#       - id: aws-secret-access-key
+#       - id: rsa-private-key
+#       - id: ssh-private-key
+#       - id: github-access-token
+#       - id: generic-api-key
+#       - id: gcp-api-key
+#       - id: jwt
+#       - id: slack-webhook-url
+#       - id: google-oauth-client-secret
