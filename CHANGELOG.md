@@ -1,3 +1,10 @@
+## [1.0.0-release.4](https://github.com/djh00t/sops-pre-commit/compare/v1.0.0-release.3...v1.0.0-release.4) (2024-07-31)
+
+
+### Features
+
+* **.gitignore-20240731-152247:** add comprehensive gitignore for Python ([5ce314e](https://github.com/djh00t/sops-pre-commit/commit/5ce314ecf9b1ddb85bb0b493c402038ecdc8a11a))
+
 ## [1.0.0-release.3](https://github.com/djh00t/sops-pre-commit/compare/v1.0.0-release.2...v1.0.0-release.3) (2024-07-31)
 
 
