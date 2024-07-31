@@ -78,7 +78,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PYPI_USER_AGENT: ${{ secrets.PYPI_USER_AGENT }}
-        run: npx semantic-release --extends .releaserc.full.js
+        run: |
+          pwd
+          ls -lah
+          npx semantic-release --extends .releaserc.full.js
 
   create-pull-request:
     name: Create Pull Request
@@ -101,7 +104,7 @@ jobs:
           title: 'Release PR'
           body: 'This PR contains the changes for the next release.'
           draft: false
-          auto-merge: true
+          # auto-merge: true
 
       - name: Merge Pull Request
         uses: actions/github-script@v4
