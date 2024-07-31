@@ -1,142 +1,241 @@
+#!/usr/bin/env python3
 """
-This module provides functionality to check for unencrypted secrets in files
-and encrypt them using SOPS (Secrets OPerationS). It supports various secret
-types and can handle Kubernetes secrets specifically.
+This module provides functionality to check for unencrypted secrets in
+files, encrypt them using SOPS (Secrets OPerationS), and handle
+encryption/decryption operations. It supports various secret types and
+can handle Kubernetes secrets specifically.
 """
 
 import argparse
 import os
 import re
+import socket
 import subprocess
 import sys
-from typing import Optional
+from datetime import datetime
+from typing import List, Optional
+
 from ruamel.yaml import YAML, YAMLError
 
-KUSTOMIZE_REGEX = r"^\$patch:\sdelete"
+# Constants
+ROOT_DIR = subprocess.getoutput("git rev-parse --show-toplevel")
+AGE_PUBLIC_KEY_PATH = os.path.join(ROOT_DIR, ".age.pub")
+AGE_PRIVATE_KEY_PATH = os.path.join(ROOT_DIR, "age.agekey")
+
+# Debug levels
+DEBUG_LEVELS = {
+    "INFO": 0,
+    "WARN": 1,
+    "ERROR": 2,
+    "DEBUG": 3,
+    "TRACE": 4,
+    "FATAL": 5,
+}
 
 
-root_dir = subprocess.getoutput("git rev-parse --show-toplevel")
+class SecretsManager:
+    """Manages encryption and decryption of secrets using SOPS."""
 
+    def __init__(self):
+        self.yaml = YAML(typ="rt")
+        self.key_age_public = self._read_key_file(AGE_PUBLIC_KEY_PATH)
+        self.key_age_private = self._read_key_file(
+            AGE_PRIVATE_KEY_PATH, line_number=1
+        )
+        self.warn_only_mode = not (
+            self.key_age_public and self.key_age_private
+        )
 
-def read_key_file(
-    file_path: str, line_number: Optional[int] = None
-) -> Optional[str]:
-    """Reads a key from a file.
+    def _read_key_file(
+        self, file_path: str, line_number: Optional[int] = None
+    ) -> Optional[str]:
+        """Reads a key from a file.
 
-    If line_number is specified, reads that specific line.
+        Args:
+            file_path: The path to the key file.
+            line_number: The line number to read (optional).
 
-    Args:
-        file_path: The path to the file.
-        line_number: The line number to read (optional).
+        Returns:
+            The key as a string, or None if the file is not found or an error
+            occurs.
+        """
+        try:
+            with open(file_path, "r", encoding="utf-8") as file:
+                if line_number is not None:
+                    return file.readlines()[line_number].strip()
+                return file.read().strip()
+        except FileNotFoundError:
+            self.debug(1, f"Warning: Key file not found: {file_path}")
+            return None
+        except IOError as e:
+            self.debug(2, f"Error reading key file {file_path}: {str(e)}")
+            return None
 
-    Returns:
-        The content of the file or the specific line.
-    """
-    try:
-        with open(file_path, "r", encoding="utf-8") as file:
-            if line_number is not None:
-                return file.readlines()[line_number].strip()
-            return file.read().strip()
-    except FileNotFoundError:
-        return ""
+    def debug(self, level: int, *messages: str) -> None:
+        """Logs debug messages with different severity levels.
 
+        Args:
+            level: The debug level (0-5).
+            *messages: The messages to log.
+        """
+        debug_levels = ["INFO", "WARN", "ERROR", "DEBUG", "TRACE", "FATAL"]
+        color_codes = [
+            "\033[1;32m",
+            "\033[1;33m",
+            "\033[1;31m",
+            "\033[1;34m",
+            "\033[1;38;5;208m",
+            "\033[1;3;31m",
+        ]
+        reset_color = "\033[0m"
+        current_date = datetime.now().strftime("%b %d %H:%M:%S")
+        hostname = socket.gethostname()
 
-yaml = YAML(typ="rt")
+        if (
+            level <= DEBUG_LEVELS.get(os.environ.get("DEBUG_LEVEL", "WARN"), 1)
+            or level == DEBUG_LEVELS["FATAL"]
+        ):
+            color = color_codes[level]
+            level_str = debug_levels[level]
+            print(
+                f"{current_date} {hostname} {color}{level_str}:{reset_color}"
+                f"\t{color}{' '.join(messages)}{reset_color}"
+            )
 
-# Read the age encryption keys
-KEY_AGE_PUBLIC = read_key_file(os.path.join(root_dir, ".age.pub"))
-KEY_AGE_PRIVATE = read_key_file(
-    os.path.join(root_dir, "age.agekey"), line_number=1
-)
+    def encrypt_file(self, file_path: str) -> None:
+        """Encrypts a file using SOPS.
 
-if not KEY_AGE_PUBLIC or not KEY_AGE_PRIVATE:
-    print(
-        "WARNING: No age encryption keys found. "
-        "Skipping steps that require them.",
-        file=sys.stderr,
-    )
-    print(
-        "Please follow the instructions at: https://github.com/djh00t/"
-        "sops-pre-commit/blob/main/docs/encryption-keys-not-found.md",
-        file=sys.stderr,
-    )
-    KEY_AGE_PUBLIC = None
-    KEY_AGE_PRIVATE = None
+        Args:
+            file_path: The path to the file to encrypt.
+        """
+        if self.warn_only_mode:
+            self.debug(1, f"WARN ONLY MODE: Would encrypt {file_path}")
+            return
 
-
-def encrypt_file(file_path: str) -> None:
-    """Encrypts the given file using SOPS if it is not already encrypted.
-
-    Args:
-        file_path: The path to the file to encrypt.
-    """
-    if KEY_AGE_PUBLIC and KEY_AGE_PRIVATE:
-        if not check_if_encrypted(file_path):
-            print("File Status:   DECRYPTED")
-            print("Action:        ENCRYPTING")
+        if not self.check_if_encrypted(file_path):
+            self.debug(0, "File Status: DECRYPTED")
+            self.debug(0, "Action: ENCRYPTING")
             try:
                 subprocess.run(
                     ["sops", "--encrypt", "--in-place", file_path], check=True
                 )
+                self.debug(0, "File Status: ENCRYPTED")
             except subprocess.CalledProcessError as e:
-                print(
-                    f"ERROR: Failed to encrypt file: {file_path}",
-                    file=sys.stderr,
-                )
-                print(f"ERROR: {str(e)}", file=sys.stderr)
-                raise
-            print("File Status:   ENCRYPTED")
+                self.debug(2, f"ERROR: Failed to encrypt file: {file_path}")
+                self.debug(2, f"ERROR: {str(e)}")
         else:
-            print("File Status:   ENCRYPTED")
-            print("Action:        SKIPPING")
-    else:
-        print(
-            "Skipping encryption step due to missing age encryption keys.",
-            file=sys.stderr,
-        )
+            self.debug(0, "File Status: ENCRYPTED")
+            self.debug(0, "Action: SKIPPING")
 
+    def decrypt_file(self, file_path: str) -> None:
+        """Decrypts a file using SOPS.
 
-def check_contains_key_age_public(file_path: str) -> bool:
-    """Checks if the given file contains the KEY_AGE_PUBLIC string.
+        Args:
+            file_path: The path to the file to decrypt.
+        """
+        if self.warn_only_mode:
+            self.debug(1, f"WARN ONLY MODE: Would decrypt {file_path}")
+            return
 
-    Args:
-        file_path: The path to the file.
+        if self.check_if_encrypted(file_path):
+            self.debug(0, "File Status: ENCRYPTED")
+            self.debug(0, "Action: DECRYPTING")
+            try:
+                subprocess.run(
+                    ["sops", "--decrypt", "--in-place", file_path], check=True
+                )
+                self.debug(0, "File Status: DECRYPTED")
+            except subprocess.CalledProcessError as e:
+                self.debug(2, f"ERROR: Failed to decrypt file: {file_path}")
+                self.debug(2, f"ERROR: {str(e)}")
+        else:
+            self.debug(0, "File Status: DECRYPTED")
+            self.debug(0, "Action: SKIPPING")
 
-    Returns:
-        True if the file contains the KEY_AGE_PUBLIC string, False otherwise.
-    """
-    try:
+    def check_if_encrypted(self, file_path: str) -> bool:
+        """Checks if a file is encrypted.
+
+        Args:
+            file_path: The path to the file to check.
+
+        Returns:
+            True if the file is encrypted, False otherwise.
+        """
         with open(file_path, "r", encoding="utf-8") as file:
             content = file.read()
-        if KEY_AGE_PUBLIC and KEY_AGE_PUBLIC in content:
-            return True
-    except FileNotFoundError:
-        print(f"ERROR: File {file_path} not found.", file=sys.stderr)
-    return False
+        encrypted_file_regex = re.compile(
+            r"^(-----BEGIN (AGE ENCRYPTED FILE|PGP MESSAGE)-----[\s\S]*?"
+            r"-----END (AGE ENCRYPTED FILE|PGP MESSAGE)-----|ENC\[AES256_GCM,"
+            r"data:.*?\]|encrypted_regex:.*)$",
+            re.MULTILINE,
+        )
+        return bool(encrypted_file_regex.search(content))
 
+    def check_kubernetes_secret_file(self, filename: str) -> bool:
+        """Checks if a Kubernetes secret file is encrypted and encrypts it if
+        not.
 
-def check_if_encrypted(file_path: str) -> bool:
-    """Checks if the given file is encrypted.
+        Args:
+            filename: The path to the Kubernetes secret file.
 
-    Looks for the SOPS encryption markers.
+        Returns:
+            True if the file was encrypted, False otherwise.
+        """
+        try:
+            with open(filename, "r", encoding="utf-8") as file:
+                documents = self.yaml.load_all(file)
+                for doc in documents:
+                    if isinstance(doc, dict) and doc.get("kind") == "Secret":
+                        if not self.check_if_encrypted(filename):
+                            self.debug(
+                                1,
+                                "WARNING: Detected unencrypted Kubernetes "
+                                "Secret in file: {filename}",
+                            )
+                            self.encrypt_file(filename)
+                            return True
+                        self.debug(
+                            0,
+                            f"File is already encrypted with SOPS: "
+                            f"{filename}",
+                        )
+                        return False
+        except YAMLError as e:
+            self.debug(2, f"ERROR: Error parsing YAML file {filename}: {e}")
+        return False
 
-    Args:
-        file_path: The path to the file.
+    def contains_secret(self, filename: str, hook_id: str) -> bool:
+        """Checks if a file contains a secret based on the hook identifier.
 
-    Returns:
-        True if the file is encrypted, False otherwise.
-    """
-    with open(file_path, "r", encoding="utf-8") as file:
-        content = file.read()
+        Args:
+            filename: The path to the file to check.
+            hook_id: The identifier of the hook to use for checking.
 
-    encrypted_file_regex = re.compile(
-        r"^(-----BEGIN (AGE ENCRYPTED FILE|PGP MESSAGE)-----[\s\S]*?"
-        r"-----END (AGE ENCRYPTED FILE|PGP MESSAGE)-----|ENC\[AES256_GCM,"
-        r"data:.*?\]|encrypted_regex:.*)$",  # noqa
-        re.MULTILINE,
-    )
+        Returns:
+            True if a secret is found and the file is encrypted, False
+            otherwise.
+        """
+        if self.check_if_encrypted(filename):
+            self.debug(0, f"File is already encrypted: {filename}")
+            return False
 
-    return bool(encrypted_file_regex.search(content))
+        try:
+            with open(filename, "r", encoding="utf-8") as file:
+                file_content = file.read()
+
+            check_function = SECRET_CHECKS.get(hook_id)
+            if check_function and check_function(file_content):
+                self.debug(
+                    1,
+                    f"WARNING: Detected potential "
+                    f"{hook_id.replace('-', ' ').title()} in file: {filename}",
+                )
+                self.encrypt_file(filename)
+                return True
+        except IOError as e:
+            self.debug(2, f"Error reading file {filename}: {str(e)}")
+
+        return False
 
 
 def check_aws_access_key_id(content: str) -> re.Match | None:
@@ -175,7 +274,7 @@ def check_rsa_private_key(content: str) -> re.Match | None:
     """
     return re.search(
         r"-----BEGIN RSA PRIVATE KEY-----\s*([A-Za-z0-9+/=\s]+)\s*"
-        r"-----END RSA PRIVATE KEY-----",  # noqa
+        r"-----END RSA PRIVATE KEY-----",
         content,
         re.DOTALL,
     )
@@ -193,7 +292,7 @@ def check_ssh_private_key(content: str) -> re.Match | None:
     return re.search(
         r"-----BEGIN ((EC|OPENSSH|DSA) PRIVATE KEY|RSA PRIVATE KEY)-----\s*"
         r"([A-Za-z0-9+/=\s]+)\s*-----END ((EC|OPENSSH|DSA) PRIVATE KEY|RSA "
-        r"PRIVATE KEY)-----",  # noqa
+        r"PRIVATE KEY)-----",
         content,
         re.DOTALL,
     )
@@ -294,229 +393,38 @@ SECRET_CHECKS = {
     "google-oauth-client-secret": check_google_oauth_client_secret,
 }
 
-EXCLUDE_PATTERNS: list[str] = []
 
-
-def is_excluded(filename: str, exclude_patterns: list[str]) -> bool:
-    """Checks if the given filename matches any of the exclude patterns.
+def is_excluded(filename: str, exclude_patterns: List[str]) -> bool:
+    """Checks if a file is excluded based on the provided patterns.
 
     Args:
-        filename: The name of the file. exclude_patterns: A list of regex
-        patterns to exclude.
+        filename: The name of the file to check.
+        exclude_patterns: A list of regex patterns to match against the
+        filename.
 
     Returns:
-        True if the filename matches any of the exclude patterns, False
-        otherwise.
+        True if the file is excluded, False otherwise.
     """
     return any(re.search(pattern, filename) for pattern in exclude_patterns)
 
 
-def is_kubernetes_secret(data: dict) -> bool:
-    """Determines if the provided data structure represents a Kubernetes
-    secret.
+def main(argv: Optional[List[str]] = None) -> int:
+    """Main function to manage secrets encryption and decryption using SOPS.
 
     Args:
-        data: The data structure to check.
+        argv: List of command-line arguments.
 
     Returns:
-        True if the data represents a Kubernetes secret, False otherwise.
+        Exit code.
     """
-    return data.get("kind", "").lower() == "secret" and data.get(
-        "apiVersion", ""
-    ).startswith("v1")
-
-
-def check_kubernetes_secret_file(filename: str) -> bool:
-    """Checks if the given filename contains a Kubernetes secret.
-
-    Args:
-        filename: The name of the file.
-
-    Returns:
-        True if the file contains a Kubernetes secret, False otherwise.
-    """
-    try:
-        with open(filename, "r", encoding="utf-8") as file:
-            documents = yaml.load_all(file)
-            for doc in documents:
-                if isinstance(doc, list):
-                    for item in doc:
-                        if is_kubernetes_secret(item):
-                            if not check_if_encrypted(filename):
-                                print(
-                                    "WARNING: Detected unencrypted Kubernetes"
-                                    "Secret "
-                                    f"in file: {filename}",
-                                    file=sys.stderr,
-                                )
-                                encrypt_file(filename)
-                                return True
-                            print(
-                                "File is already encrypted with SOPS: "
-                                f"{filename}"
-                            )
-                            return False
-                elif is_kubernetes_secret(doc):
-                    if not check_if_encrypted(filename):
-                        print(
-                            "WARNING: Detected unencrypted Kubernetes Secret "
-                            f"in file: {filename}",
-                            file=sys.stderr,
-                        )
-                        encrypt_file(filename)
-                        return True
-                    print(f"File is already encrypted with SOPS: {filename}")
-                    return False
-    except YAMLError as e:
-        print(
-            f"ERROR: Error parsing YAML file {filename}: {e}", file=sys.stderr
-        )
-    return False
-
-
-def contains_secret(filename: str, hook_id: str) -> bool:
-    """Checks if the given filename contains an unencrypted secret.
-
-    Searches for patterns.
-
-    Args:
-        filename: The name of the file.
-        hook_id: The identifier of the hook.
-
-    Returns:
-        True if the file contains an unencrypted secret, False otherwise.
-    """
-    if KEY_AGE_PUBLIC and KEY_AGE_PRIVATE:
-        if check_if_encrypted(filename):
-            print(
-                f"File is already encrypted with SOPS: {filename}",
-                file=sys.stderr,
-            )
-            if check_contains_key_age_public(filename):
-                print(
-                    "WARNING: Detected KEY_AGE_PUBLIC in encrypted file: "
-                    f"{filename}",
-                    file=sys.stderr,
-                )
-            return False
-
-        with open(filename, "r", encoding="utf-8") as file:
-            file_content = file.read()
-
-        check_function = SECRET_CHECKS.get(hook_id)
-        if check_function and check_function(file_content):
-            print(
-                "WARNING: Detected {hook_id.replace('-', ' ').title()} in "
-                "file: "
-                f"{filename}",
-                file=sys.stderr,
-            )
-            encrypt_file(filename)
-            return True
-        return False
-    print(
-        "Skipping secret check due to missing age encryption keys.",
-        file=sys.stderr,
-    )
-    return False
-
-
-def is_sops_installed() -> bool:
-    """Checks if SOPS is installed by attempting to call it.
-
-    Returns:
-        True if SOPS is installed, False otherwise.
-    """
-    try:
-        subprocess.run(
-            ["sops", "--version"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            check=True,
-        )
-        return True
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return False
-
-
-def prompt_install_sops() -> bool:
-    """Prompts the user to install SOPS if it is not installed.
-
-    Returns:
-        True if the user approves and SOPS is installed, False otherwise.
-    """
-    print(
-        "ERROR: SOPS is not installed. It is required to encrypt secrets.",
-        file=sys.stderr,
-    )
-    approval = (
-        input("Would you like to install SOPS now? [y/N]: ").strip().lower()
-    )
-    if approval == "y":
-        try:
-            subprocess.run(
-                [
-                    sys.executable,
-                    "-m",
-                    "pip",
-                    "install",
-                    "-r",
-                    "requirements.txt",
-                ],
-                check=True,
-            )
-            print("SOPS has been successfully installed.")
-            return True
-        except subprocess.CalledProcessError as e:
-            print(f"ERROR: Failed to install SOPS: {e}", file=sys.stderr)
-            return False
-    else:
-        print("SOPS installation was not approved. Exiting.", file=sys.stderr)
-        return False
-
-
-def check_keys_present() -> bool:
-    """Checks if the necessary age or gpg keys are present.
-
-    Returns:
-        True if keys are present, False otherwise.
-    """
-    if not KEY_AGE_PUBLIC or not KEY_AGE_PRIVATE:
-        print(
-            "ERROR: No age or gpg keys found. Instructions can be found at: "
-            "https://github.com/djh00t/sops-pre-commit/blob/main/docs/encrypt"
-            "ion-keys-not-found.md or exclude the file",
-            file=sys.stderr,
-        )
-        return False
-    return True
-
-
-def main(
-    argv: Optional[list[str]] = None,
-    exclude_patterns: Optional[list[str]] = None,
-) -> int:
-    """Main function that parses arguments and checks each file for secrets and
-    encryption.
-
-    Args:
-        argv: A list of command-line arguments.
-        exclude_patterns: A list of regex patterns to exclude.
-
-    Returns:
-        An integer exit code.
-    """
-    # Parse arguments first to handle help and other options.
     parser = argparse.ArgumentParser(
-        description="Checks for unencrypted Kubernetes secrets or other speci"
-        "fied secrets and encrypts them using SOPS if found.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        description="Manage secrets encryption and decryption using SOPS."
     )
     parser.add_argument("filenames", nargs="*", help="Filenames to check.")
     parser.add_argument(
         "--hook-id",
-        help="Identifier of the hook (e.g., aws-access-key-id, kubernetes-sec"
-        "ret).",
+        help="Identifier of the hook (e.g., aws-access-key-id, "
+        "kubernetes-secret).",
         required=True,
     )
     parser.add_argument(
@@ -525,67 +433,75 @@ def main(
         help="Regex patterns for files to exclude from checks.",
         default=[],
     )
+    parser.add_argument(
+        "--action",
+        choices=["encrypt", "decrypt"],
+        default="encrypt",
+        help="Action to perform on the files.",
+    )
     args = parser.parse_args(argv)
 
-    secrets_detected = False
+    secrets_manager = SecretsManager()
 
-    if KEY_AGE_PUBLIC and KEY_AGE_PRIVATE:
-        # Check if SOPS is installed and prompt the user to install it if not.
-        if not is_sops_installed() and not prompt_install_sops():
-            return 1
+    if secrets_manager.warn_only_mode:
+        secrets_manager.debug(
+            1,
+            "WARNING: Running in WARN ONLY mode. Secrets will not be "
+            "encrypted.",
+        )
+        secrets_manager.debug(
+            1,
+            "Please install SOPS and generate age keys to enable encryption.",
+        )
 
-        exclude_patterns = args.exclude or []
+    exclude_patterns = args.exclude
+    hook_id = args.hook_id
+    action = args.action
 
-        # Check for hook_id arguments
-        hook_id = args.hook_id
+    files_with_secrets = []
 
-        # Setup files_with_secrets list
-        files_with_secrets = []
+    for filename in args.filenames:
+        if is_excluded(filename, exclude_patterns):
+            continue
 
-        # Check for Kubernetes secrets
-        if hook_id == "kubernetes-secret":
-            # Check for Kubernetes secrets in files
-            files_with_secrets = [
-                f
-                for f in args.filenames
-                if not is_excluded(f, exclude_patterns)
-                and check_kubernetes_secret_file(f)
-            ]
-        else:
-            # Check for secrets in files
-            files_with_secrets = [
-                f
-                for f in args.filenames
-                if not is_excluded(f, exclude_patterns)
-                and contains_secret(f, hook_id)
-            ]
+        if is_excluded(filename, exclude_patterns):
+            continue
 
-        # Check if the necessary keys are present, if not prompt user to
-        # generate them.
-        if files_with_secrets and not check_keys_present():
-            return 1
+        if (
+            hook_id == "kubernetes-secret"
+            and secrets_manager.check_kubernetes_secret_file(filename)
+        ):
+            files_with_secrets.append(filename)
+        elif hook_id in SECRET_CHECKS and secrets_manager.contains_secret(
+            filename, hook_id
+        ):
+            files_with_secrets.append(filename)
+        elif hook_id not in SECRET_CHECKS:
+            secrets_manager.debug(1, f"Warning: Unknown hook-id '{hook_id}'")
 
-        return_code = 0
+        if action == "decrypt":
+            secrets_manager.decrypt_file(filename)
 
-        # Loop through files_with_secrets and log warnings
+    if files_with_secrets:
         for file_with_secrets in files_with_secrets:
-            secrets_detected = True
-            print(
-                "WARNING: Unencrypted Kubernetes secret detected in file: "
-                f"{file_with_secrets}",
-                file=sys.stderr,
+            secrets_manager.debug(
+                1,
+                "WARNING: Potential unencrypted secret "
+                f"detected in file: {file_with_secrets}",
             )
-            return_code = 1
-        # Log success message if secrets were detected and encrypted
-        if secrets_detected:
-            print("Secrets were detected and encrypted.", file=sys.stderr)
-        return return_code
-    print(
-        "Skipping all steps due to missing age encryption keys.",
-        file=sys.stderr,
-    )
+        if secrets_manager.warn_only_mode:
+            secrets_manager.debug(
+                1,
+                "Secrets were detected. Please review and encrypt manually "
+                "if needed.",
+            )
+            return 1
+        secrets_manager.debug(
+            0, "Secrets were detected and encrypted where possible."
+        )
+
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))  # pylint: disable=no-value-for-parameter
+    sys.exit(main(sys.argv[1:]))
