@@ -5,6 +5,7 @@ datetime
 dlint
 flake8
 isort
+jinja2
 klingon_tools
 mypy
 pre-commit
@@ -15,5 +16,5 @@ PyYAML
 pyyaml
 ruamel.yaml
 sops
+toml
 yamllint
-jinja2
