@@ -43,15 +43,25 @@ def read_key_file(
 
 yaml = YAML(typ="rt")
 
-key_age_public = read_key_file(os.path.join(root_dir, ".age.pub"))
-if not key_age_public:
-    print(
-        "WARNING: .age.pub not found. Skipping tests that require it.",
-        file=sys.stderr,
-    )
-key_age_private = read_key_file(
+# Read the age encryption keys
+KEY_AGE_PUBLIC = read_key_file(os.path.join(root_dir, ".age.pub"))
+KEY_AGE_PRIVATE = read_key_file(
     os.path.join(root_dir, "age.agekey"), line_number=1
 )
+
+if not KEY_AGE_PUBLIC or not KEY_AGE_PRIVATE:
+    print(
+        "WARNING: No age encryption keys found. "
+        "Skipping steps that require them.",
+        file=sys.stderr,
+    )
+    print(
+        "Please follow the instructions at: https://github.com/djh00t/"
+        "sops-pre-commit/blob/main/docs/encryption-keys-not-found.md",
+        file=sys.stderr,
+    )
+    KEY_AGE_PUBLIC = None
+    KEY_AGE_PRIVATE = None
 
 
 def encrypt_file(file_path: str) -> None:
@@ -60,38 +70,45 @@ def encrypt_file(file_path: str) -> None:
     Args:
         file_path: The path to the file to encrypt.
     """
-    if not check_if_encrypted(file_path):
-        print("File Status:   DECRYPTED")
-        print("Action:        ENCRYPTING")
-        try:
-            subprocess.run(
-                ["sops", "--encrypt", "--in-place", file_path], check=True
-            )
-        except subprocess.CalledProcessError as e:
-            print(
-                f"ERROR: Failed to encrypt file: {file_path}", file=sys.stderr
-            )
-            print(f"ERROR: {str(e)}", file=sys.stderr)
-            raise
-        print("File Status:   ENCRYPTED")
+    if KEY_AGE_PUBLIC and KEY_AGE_PRIVATE:
+        if not check_if_encrypted(file_path):
+            print("File Status:   DECRYPTED")
+            print("Action:        ENCRYPTING")
+            try:
+                subprocess.run(
+                    ["sops", "--encrypt", "--in-place", file_path], check=True
+                )
+            except subprocess.CalledProcessError as e:
+                print(
+                    f"ERROR: Failed to encrypt file: {file_path}",
+                    file=sys.stderr,
+                )
+                print(f"ERROR: {str(e)}", file=sys.stderr)
+                raise
+            print("File Status:   ENCRYPTED")
+        else:
+            print("File Status:   ENCRYPTED")
+            print("Action:        SKIPPING")
     else:
-        print("File Status:   ENCRYPTED")
-        print("Action:        SKIPPING")
+        print(
+            "Skipping encryption step due to missing age encryption keys.",
+            file=sys.stderr,
+        )
 
 
 def check_contains_key_age_public(file_path: str) -> bool:
-    """Checks if the given file contains the key_age_public string.
+    """Checks if the given file contains the KEY_AGE_PUBLIC string.
 
     Args:
         file_path: The path to the file.
 
     Returns:
-        True if the file contains the key_age_public string, False otherwise.
+        True if the file contains the KEY_AGE_PUBLIC string, False otherwise.
     """
     try:
         with open(file_path, "r", encoding="utf-8") as file:
             content = file.read()
-        if key_age_public and key_age_public in content:
+        if KEY_AGE_PUBLIC and KEY_AGE_PUBLIC in content:
             return True
     except FileNotFoundError:
         print(f"ERROR: File {file_path} not found.", file=sys.stderr)
@@ -369,30 +386,38 @@ def contains_secret(filename: str, hook_id: str) -> bool:
     Returns:
         True if the file contains an unencrypted secret, False otherwise.
     """
-    if check_if_encrypted(filename):
-        print(
-            f"File is already encrypted with SOPS: {filename}", file=sys.stderr
-        )
-        if check_contains_key_age_public(filename):
+    if KEY_AGE_PUBLIC and KEY_AGE_PRIVATE:
+        if check_if_encrypted(filename):
             print(
-                "WARNING: Detected key_age_public in encrypted file: "
+                f"File is already encrypted with SOPS: {filename}",
+                file=sys.stderr,
+            )
+            if check_contains_key_age_public(filename):
+                print(
+                    "WARNING: Detected KEY_AGE_PUBLIC in encrypted file: "
+                    f"{filename}",
+                    file=sys.stderr,
+                )
+            return False
+
+        with open(filename, "r", encoding="utf-8") as file:
+            file_content = file.read()
+
+        check_function = SECRET_CHECKS.get(hook_id)
+        if check_function and check_function(file_content):
+            print(
+                "WARNING: Detected {hook_id.replace('-', ' ').title()} in "
+                "file: "
                 f"{filename}",
                 file=sys.stderr,
             )
+            encrypt_file(filename)
+            return True
         return False
-
-    with open(filename, "r", encoding="utf-8") as file:
-        file_content = file.read()
-
-    check_function = SECRET_CHECKS.get(hook_id)
-    if check_function and check_function(file_content):
-        print(
-            "WARNING: Detected {hook_id.replace('-', ' ').title()} in file: "
-            f"{filename}",
-            file=sys.stderr,
-        )
-        encrypt_file(filename)
-        return True
+    print(
+        "Skipping secret check due to missing age encryption keys.",
+        file=sys.stderr,
+    )
     return False
 
 
@@ -456,7 +481,7 @@ def check_keys_present() -> bool:
     Returns:
         True if keys are present, False otherwise.
     """
-    if not key_age_public or not key_age_private:
+    if not KEY_AGE_PUBLIC or not KEY_AGE_PRIVATE:
         print(
             "ERROR: No age or gpg keys found. Instructions can be found at: "
             "https://github.com/djh00t/sops-pre-commit/blob/main/docs/encrypt"
@@ -504,80 +529,62 @@ def main(
 
     secrets_detected = False
 
-    # Check if SOPS is installed and prompt the user to install it if not.
-    if not is_sops_installed() and not prompt_install_sops():
-        return 1
+    if KEY_AGE_PUBLIC and KEY_AGE_PRIVATE:
+        # Check if SOPS is installed and prompt the user to install it if not.
+        if not is_sops_installed() and not prompt_install_sops():
+            return 1
 
-    exclude_patterns = args.exclude or []
+        exclude_patterns = args.exclude or []
 
-    # Check for hook_id arguments
-    hook_id = args.hook_id
+        # Check for hook_id arguments
+        hook_id = args.hook_id
 
-    # Setup files_with_secrets list
-    files_with_secrets = []
+        # Setup files_with_secrets list
+        files_with_secrets = []
 
-    # Check for Kubernetes secrets
-    if hook_id == "kubernetes-secret":
-        # Check for Kubernetes secrets in files
-        files_with_secrets = [
-            f
-            for f in args.filenames
-            if not is_excluded(f, exclude_patterns)
-            and check_kubernetes_secret_file(f)
-        ]
-    else:
-        # Check for secrets in files
-        files_with_secrets = [
-            f
-            for f in args.filenames
-            if not is_excluded(f, exclude_patterns)
-            and contains_secret(f, hook_id)
-        ]
+        # Check for Kubernetes secrets
+        if hook_id == "kubernetes-secret":
+            # Check for Kubernetes secrets in files
+            files_with_secrets = [
+                f
+                for f in args.filenames
+                if not is_excluded(f, exclude_patterns)
+                and check_kubernetes_secret_file(f)
+            ]
+        else:
+            # Check for secrets in files
+            files_with_secrets = [
+                f
+                for f in args.filenames
+                if not is_excluded(f, exclude_patterns)
+                and contains_secret(f, hook_id)
+            ]
 
-    # Check if the necessary keys are present, if not prompt user to generate
-    # them.
-    if files_with_secrets and not check_keys_present():
-        return 1
+        # Check if the necessary keys are present, if not prompt user to
+        # generate them.
+        if files_with_secrets and not check_keys_present():
+            return 1
 
-    # Check for hook_id arguments
-    hook_id = args.hook_id
+        return_code = 0
 
-    # Setup files_with_secrets list
-    files_with_secrets = []
-
-    # Check for Kubernetes secrets
-    if hook_id == "kubernetes-secret":
-        # Check for Kubernetes secrets in files
-        files_with_secrets = [
-            f
-            for f in args.filenames
-            if not is_excluded(f, exclude_patterns)
-            and check_kubernetes_secret_file(f)
-        ]
-    else:
-        # Check for secrets in files
-        files_with_secrets = [
-            f
-            for f in args.filenames
-            if not is_excluded(f, exclude_patterns)
-            and contains_secret(f, hook_id)
-        ]
-
-    return_code = 0
-
-    # Loop through files_with_secrets and log warnings
-    for file_with_secrets in files_with_secrets:
-        secrets_detected = True
-        print(
-            "WARNING: Unencrypted Kubernetes secret detected in file: "
-            f"{file_with_secrets}",
-            file=sys.stderr,
-        )
-        return_code = 1
-    # Log success message if secrets were detected and encrypted
-    if secrets_detected:
-        print("Secrets were detected and encrypted.", file=sys.stderr)
-    return return_code
+        # Loop through files_with_secrets and log warnings
+        for file_with_secrets in files_with_secrets:
+            secrets_detected = True
+            print(
+                "WARNING: Unencrypted Kubernetes secret detected in file: "
+                f"{file_with_secrets}",
+                file=sys.stderr,
+            )
+            return_code = 1
+        # Log success message if secrets were detected and encrypted
+        if secrets_detected:
+            print("Secrets were detected and encrypted.", file=sys.stderr)
+        return return_code
+    print(
+        "Skipping all steps due to missing age encryption keys.",
+        file=sys.stderr,
+    )
+    return 0
 
 
 if __name__ == "__main__":
