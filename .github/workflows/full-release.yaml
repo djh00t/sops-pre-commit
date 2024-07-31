@@ -33,6 +33,14 @@ jobs:
       - name: Install Node.js dependencies
         run: |
           npm install
+          npm update @semantic-release/github \
+          @octokit/request \
+          @semantic-release/commit-analyzer \
+          @semantic-release/release-notes-generator \
+          @semantic-release/changelog \
+          @semantic-release/git \
+          @semantic-release/github \
+          @semantic-release/exec
 
       - name: Set up Python
         uses: actions/setup-python@v5
