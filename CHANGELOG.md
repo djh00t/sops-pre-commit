@@ -1,3 +1,10 @@
+## [1.0.0-release.8](https://github.com/djh00t/sops-pre-commit/compare/v1.0.0-release.7...v1.0.0-release.8) (2024-07-31)
+
+
+### Bug Fixes
+
+* **workflows/full-release:** update semantic-release path for configuration ([afb4637](https://github.com/djh00t/sops-pre-commit/commit/afb463752a3c09cdf2c6e8411412cc767a7bf4ea))
+
 ## [1.0.0-release.7](https://github.com/djh00t/sops-pre-commit/compare/v1.0.0-release.6...v1.0.0-release.7) (2024-07-31)
 
 ## [1.0.0-release.6](https://github.com/djh00t/sops-pre-commit/compare/v1.0.0-release.5...v1.0.0-release.6) (2024-07-31)
