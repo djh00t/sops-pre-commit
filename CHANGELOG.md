@@ -1,3 +1,27 @@
+## [1.0.0-release.3](https://github.com/djh00t/sops-pre-commit/compare/v1.0.0-release.2...v1.0.0-release.3) (2024-07-31)
+
+
+### Features
+
+* **package:** add @babel/helper-validator-identifier package.json file ([cbafede](https://github.com/djh00t/sops-pre-commit/commit/cbafedeb21ab69dc8745e61c2b3931b3b155632e))
+* **package.json:** add @babel/highlight package configuration ([6d672ac](https://github.com/djh00t/sops-pre-commit/commit/6d672acb5084a0de9a9cd13e1e07ffea9fc2a789))
+* **cliui:** add ESM bootstrap for cliui with dependencies ([da3682e](https://github.com/djh00t/sops-pre-commit/commit/da3682e816913c0ba4e56c52f04bd8ebbd7e3a58))
+* **colors:** add example script for safe-string usage ([e3f9a23](https://github.com/djh00t/sops-pre-commit/commit/e3f9a231ed32298f9cdf75b0df75b0db7f02f179))
+* **examples/normal-usage:** add example usage for colors library ([6faa5d2](https://github.com/djh00t/sops-pre-commit/commit/6faa5d2ff661bd3e9a4905349f10e07542310bff))
+* **helper-validator-identifier:** add generate-identifier-regex script for ID ([8c37f8f](https://github.com/djh00t/sops-pre-commit/commit/8c37f8fdcab8e8151684f06f3a102bf8c501eac5))
+* **colors:** add generic logging theme colors ([b04db92](https://github.com/djh00t/sops-pre-commit/commit/b04db928bcbca6deee157bce303d8355714b80e4))
+* **@colors/colors:** add initial package.json for colors library ([a944459](https://github.com/djh00t/sops-pre-commit/commit/a944459ee4beacaea76ef765944ba0d3eacd4363))
+* **license:** add MIT License file for @babel/highlight package ([76710b0](https://github.com/djh00t/sops-pre-commit/commit/76710b0b4ec9cdcae018f03ca9470802cf4f67bc))
+* **node_modules/@babel/code-frame:** add package.json for @babel/code-frame ([358f09d](https://github.com/djh00t/sops-pre-commit/commit/358f09d934a8ccb2bfcbd05f367d43c1fdf03ab1))
+* **cliui:** add package.json for cliui library ([3cb4607](https://github.com/djh00t/sops-pre-commit/commit/3cb46072b034a611c997ae90136682e517e87a5f))
+* **highlight:** add README documentation for @babel/highlight package ([3bae543](https://github.com/djh00t/sops-pre-commit/commit/3bae543ef2e4795cc61ce45b374135eb13c1b085))
+* **cliui:** add README documentation for cliui package ([ae551e9](https://github.com/djh00t/sops-pre-commit/commit/ae551e99d2928561aafe9d4c93be0aac91caa1bf))
+* **@babel/code-frame:** add README file with installation instructions and ([7c13eab](https://github.com/djh00t/sops-pre-commit/commit/7c13eabe0162170c183e1555a94d440761d37bc4))
+* **colors:** add safe colors API for non-invasive string manipulation ([64bbe36](https://github.com/djh00t/sops-pre-commit/commit/64bbe36cd1789983681cb0eb9297dca9aea8ffb9))
+* **types:** add TypeScript definitions for @colors/colors ([7cd18f4](https://github.com/djh00t/sops-pre-commit/commit/7cd18f4bf8c2d4e95f9e3d1b54f3750a849fcd0b))
+* **colors:** add TypeScript definitions for Colors.js ([3cfe5f1](https://github.com/djh00t/sops-pre-commit/commit/3cfe5f14983d7de3b7bf286125d5c50421966b50))
+* **releaserc:** configure GitHub release integration with asset upload ([9b1a991](https://github.com/djh00t/sops-pre-commit/commit/9b1a99134b74a5e3c55e9a9264850144374f3e04))
+
 ## [1.0.0-release.2](https://github.com/djh00t/sops-pre-commit/compare/v1.0.0-release.1...v1.0.0-release.2) (2024-07-31)
 
 
