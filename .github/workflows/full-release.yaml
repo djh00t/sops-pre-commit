@@ -78,10 +78,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PYPI_USER_AGENT: ${{ secrets.PYPI_USER_AGENT }}
+        run:           npx semantic-release --extends /home/runner/work/sops-pre-commit/sops-pre-commit/.releaserc.full.js
+
+      - name: Commit changes to a new branch
         run: |
-          pwd
-          ls -lah
-          npx semantic-release --extends /home/runner/work/sops-pre-commit/sops-pre-commit/.releaserc.full.js
+          git checkout -b release-branch
+          git add .
+          git commit -m "chore(release): commit changes"
+          git push origin release-branch
 
   create-pull-request:
     name: Create Pull Request
@@ -104,7 +108,7 @@ jobs:
           title: 'Release PR'
           body: 'This PR contains the changes for the next release.'
           draft: false
-          # auto-merge: true
+          auto-merge: true
 
       - name: Merge Pull Request
         uses: actions/github-script@v4
