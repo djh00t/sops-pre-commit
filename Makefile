@@ -49,6 +49,7 @@ clean:
 	@rm -rf dist
 	@rm -rf htmlcov
 	@rm -rf node_modules
+	@rm -rf requirements.txt
 	@echo "Repo cleaned up..............................................................✅"
 
 # Pre-push cleanup target

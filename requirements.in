@@ -5,7 +5,7 @@ datetime
 dlint
 flake8
 isort
-klingon_tools
+jinja2
 mypy
 pre-commit
 pylint
@@ -13,7 +13,9 @@ pytest
 pytest-cov
 PyYAML
 pyyaml
-ruamel.yaml
 sops
+toml
+types-toml
 yamllint
-jinja2
+ruamel.yaml
+klingon_tools
