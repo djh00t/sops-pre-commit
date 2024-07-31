@@ -24,32 +24,49 @@ install:
 	$(PIP) install --upgrade setuptools
 	$(PIP) install --upgrade wheel
 	$(PIP) install --upgrade pip-tools
-	$(PIP_COMPILE) requirements-dev.in
-	$(PIP) install --upgrade -r requirements-dev.txt
-	make setup_sops_files
+	$(PIP_COMPILE) requirements.in
+	$(PIP) install --upgrade -r requirements.txt
 	pre-commit install --overwrite
 
 # Test target
 test:
 	$(PYTHON) -m pytest -v
 
-setup_sops_files:
-	$(PYTHON) -c "from hooks.encrypt_decrypt_sops import setup_sops_files; setup_sops_files()"
-
 # Clean target
 clean:
-	pre-commit clean
-	find . -type f -name '*.pyc' -delete
-	find . -type d -name '__pycache__' -exec rm -rf {} +
-	rm -rf .pytest_cache
-	rm -rf .mypy_cache
-	rm -rf .coverage
-	rm -rf htmlcov
-	rm -rf .tox
-	rm -rf dist
-	rm -rf build
-	rm -rf *.egg-info
-	rm -rf .aider*
+	@echo "Cleaning up repo.............................................................🧹"
+	@make push-prep
+	@pre-commit clean
+	@find . -type f -name '*.pyc' -delete
+	@find . -type d -name '__pycache__' -exec rm -rf {} +
+	@rm -rf .aider*
+	@rm -rf .coverage
+	@rm -rf .mypy_cache
+	@rm -rf .pytest_cache
+	@rm -rf .tox
+	@rm -rf *.egg-info
+	@rm -rf build
+	@rm -rf dist
+	@rm -rf htmlcov
+	@rm -rf node_modules
+	@rm -rf requirements.txt
+	@echo "Repo cleaned up..............................................................✅"
+
+# Pre-push cleanup target
+push-prep:
+	@echo "Removing temporary files.................................................... 🧹"
+	@find . -type f -name '*.pyc' -delete
+	@if [ -f requirements.txt ]; then \
+		echo "Resetting requirements.txt to empty state................................... ✅"; \
+		rm -rf requirements.txt; \
+		touch requirements.txt; \
+	fi
+	@if [ -f requirements-dev.txt ]; then \
+		echo "Resetting requirements-dev.txt to empty state............................... ✅"; \
+		rm -rf requirements-dev.txt; \
+		touch requirements-dev.txt; \
+	fi
+	@echo "Removed temporary files..................................................... ✅"
 
 # Compile target
 compile:
