@@ -16,3 +16,4 @@ pyyaml
 ruamel.yaml
 sops
 yamllint
+jinja2
