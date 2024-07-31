@@ -1,3 +1,10 @@
+## [1.0.0-release.6](https://github.com/djh00t/sops-pre-commit/compare/v1.0.0-release.5...v1.0.0-release.6) (2024-07-31)
+
+
+### Features
+
+* **releaserc:** add configuration for semantic release ([5239cd4](https://github.com/djh00t/sops-pre-commit/commit/5239cd416ea43cd85d2df57b473b41303f358f63))
+
 ## [1.0.0-release.5](https://github.com/djh00t/sops-pre-commit/compare/v1.0.0-release.4...v1.0.0-release.5) (2024-07-31)
 
 
