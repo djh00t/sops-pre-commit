@@ -1,3 +1,10 @@
+## [1.0.0-release.2](https://github.com/djh00t/sops-pre-commit/compare/v1.0.0-release.1...v1.0.0-release.2) (2024-07-31)
+
+
+### Features
+
+* **requirements.in:** add jinja2 and toml to project dependencies ([f497989](https://github.com/djh00t/sops-pre-commit/commit/f49798957f98444e0e501069035442a02f0be52d))
+
 ## [1.0.0-release.1](https://github.com/djh00t/sops-pre-commit/compare/v0.0.2...v1.0.0-release.1) (2024-07-31)
 
 
