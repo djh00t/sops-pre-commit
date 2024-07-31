@@ -1,0 +1,22 @@
+###############################################################################
+# project.gitignore - Project specific .gitignore file
+#
+# Usage: This file is included by the main gitignore file in
+#        gitignore/gitignore and should contain any project specific ignore
+#        rules which don't belong in any of the predefined rulesets.
+#
+# License: This project is licensed under the MIT License
+#          https://opensource.org/licenses/MIT
+###############################################################################
+
+# Don't add aider configs, logs, caches etc
+.aider**
+**/.aider**
+.aider_logs/
+
+# Ignore logs
+*.log
+**/*.log
+
+# Ignore cache files
+**.cache
