@@ -1,0 +1,3 @@
+[submodule "klingon_templates"]
+	path = klingon_templates
+	url = git@github.com:djh00t/klingon_templates.git
