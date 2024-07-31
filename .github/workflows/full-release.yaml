@@ -78,7 +78,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PYPI_USER_AGENT: ${{ secrets.PYPI_USER_AGENT }}
-        run:           npx semantic-release --extends /home/runner/work/sops-pre-commit/sops-pre-commit/.releaserc.full.js
+        run: npx semantic-release --extends /home/runner/work/sops-pre-commit/sops-pre-commit/.releaserc.full.js
 
       - name: Commit changes to a new branch
         run: |
