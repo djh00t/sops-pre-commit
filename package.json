@@ -1,12 +1,27 @@
 {
+  "name": "sops-pre-commit",
+  "version": "0.0.3",
+  "description": "Check for unencrypted secrets and encrypt them using sops and age/gpg. Forked from https://github.com/onedr0p/sops-pre-commit",
+  "scripts": {
+    "semantic-release": "semantic-release"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:djh00t/sops-pre-commit.git"
+  },
+  "author": "David Hooton <sops-pre-commit+david@hooton.org>",
+  "license": "MIT",
   "devDependencies": {
-    "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "^10.0.6",
-    "@semantic-release/release-notes-generator": "^14.0.1",
-    "semantic-release": "^24.0.0"
+    "@semantic-release/changelog": "^6.0.2",
+    "@semantic-release/exec": "^6.0.2",
+    "@semantic-release/git": "^10.0.0",
+    "@semantic-release/github": "^10.1.0",
+    "glob": "^10.4.5",
+    "rimraf": "^6.0.0",
+    "semantic-release": "^23.1.1",
+    "conventional-changelog-conventionalcommits": "^7.0.2"
   },
   "dependencies": {
-    "@semantic-release/exec": "^6.0.3"
+    "conventional-changelog-conventionalcommits": "^7.0.2"
   }
 }
