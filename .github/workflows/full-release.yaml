@@ -1,4 +1,3 @@
----
 name: 🚀 Full Release
 
 on:
@@ -11,7 +10,7 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  release:
+  full-release:
     runs-on: ubuntu-latest
 
     steps:
@@ -77,12 +76,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PYPI_USER_AGENT: ${{ secrets.PYPI_USER_AGENT }}
-        run: ./.github/workflows/semantic-release.sh
+        run: npx semantic-release
 
   create-pull-request:
     name: Create Pull Request
     runs-on: ubuntu-latest
-    needs: release
+    needs: full-release
 
     steps:
       - name: Checkout code
@@ -97,21 +96,19 @@ jobs:
           base: main
           title: 'Release PR'
           body: 'This PR contains the changes for the next release.'
+          draft: false
+          auto-merge: true
 
       - name: Merge Pull Request
         uses: actions/github-script@v4
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const { data: pullRequest } = await github.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number
-            });
+            const pull_number = parseInt("${{ steps.create_pull_request.outputs.pull_request_number }}", 10);
             await github.pulls.merge({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: pullRequest.number,
+              pull_number: pull_number,
               merge_method: 'squash'
             });
 
