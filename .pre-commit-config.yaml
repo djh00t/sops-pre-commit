@@ -114,10 +114,3 @@ repos:
       - id: pylint
       # Example of disabling specific pylint categories
       # args: ["--disable=R,C"]
-
-  # YAPF configuration is in pyproject.toml
-  - repo: https://github.com/google/yapf
-    rev: v0.40.2
-    hooks:
-    - id: yapf
-      args: ['--in-place', '--verbose', '--style', 'google']
