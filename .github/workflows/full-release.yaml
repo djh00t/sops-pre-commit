@@ -81,7 +81,7 @@ jobs:
         run: |
           pwd
           ls -lah
-          npx semantic-release --extends .releaserc.full.js
+          npx semantic-release --extends /home/runner/work/sops-pre-commit/sops-pre-commit/.releaserc.full.js
 
   create-pull-request:
     name: Create Pull Request
