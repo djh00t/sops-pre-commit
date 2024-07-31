@@ -24,8 +24,8 @@ install:
 	$(PIP) install --upgrade setuptools
 	$(PIP) install --upgrade wheel
 	$(PIP) install --upgrade pip-tools
-	$(PIP_COMPILE) requirements-dev.in
-	$(PIP) install --upgrade -r requirements-dev.txt
+	$(PIP_COMPILE) requirements.in
+	$(PIP) install --upgrade -r requirements.txt
 	pre-commit install --overwrite
 
 # Test target
@@ -53,19 +53,19 @@ clean:
 
 # Pre-push cleanup target
 push-prep:
-	@echo "Removing temporary files.....................................................🧹"
+	@echo "Removing temporary files.................................................... 🧹"
 	@find . -type f -name '*.pyc' -delete
 	@if [ -f requirements.txt ]; then \
-		echo "Resetting requirements.txt to empty state....................................✅"; \
+		echo "Resetting requirements.txt to empty state................................... ✅"; \
 		rm -rf requirements.txt; \
 		touch requirements.txt; \
 	fi
 	@if [ -f requirements-dev.txt ]; then \
-		echo "Resetting requirements-dev.txt to empty state................................✅"; \
+		echo "Resetting requirements-dev.txt to empty state............................... ✅"; \
 		rm -rf requirements-dev.txt; \
 		touch requirements-dev.txt; \
 	fi
-	@echo "Removed temporary files......................................................✅"
+	@echo "Removed temporary files..................................................... ✅"
 
 # Compile target
 compile:
