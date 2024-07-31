@@ -1,3 +1,17 @@
+## [1.0.0-release.5](https://github.com/djh00t/sops-pre-commit/compare/v1.0.0-release.4...v1.0.0-release.5) (2024-07-31)
+
+
+### Features
+
+* **github-workflows:** add pre-release workflow for automated releases ([bbcdfca](https://github.com/djh00t/sops-pre-commit/commit/bbcdfca8e3d04c9bbcffc8e642aa239ad8b6c880))
+* **workflows:** add semantic pre-release script to manage versioning and ([3618752](https://github.com/djh00t/sops-pre-commit/commit/3618752a00d1ba8f8725895d67eb1601d60121a0))
+* **hooks/forbid_secrets:** enhance secrets management with encryption and ([36bdf03](https://github.com/djh00t/sops-pre-commit/commit/36bdf035487099ff0bbb919fc5268f1bb5ecca89))
+
+
+### Bug Fixes
+
+* **setup.py:** update version retrieval method and project metadata ([040ad32](https://github.com/djh00t/sops-pre-commit/commit/040ad3250992a42248ccc4dea92eccc90532a041))
+
 ## [1.0.0-release.4](https://github.com/djh00t/sops-pre-commit/compare/v1.0.0-release.3...v1.0.0-release.4) (2024-07-31)
 
 
