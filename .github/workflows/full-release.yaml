@@ -78,7 +78,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PYPI_USER_AGENT: ${{ secrets.PYPI_USER_AGENT }}
-        run: npx semantic-release --extends .releaserc.full.js
+        run: |
+          pwd
+          ls -lah
+          npx semantic-release --extends .releaserc.full.js
 
   create-pull-request:
     name: Create Pull Request
