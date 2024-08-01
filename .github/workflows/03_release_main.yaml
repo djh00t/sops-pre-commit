@@ -1,12 +1,9 @@
-name: 🚀 Full Release
+name: 🚀 Release
 
 on:
   push:
     branches:
-      - main
-  pull_request:
-    branches:
-      - main
+      - release
   workflow_dispatch: {}
 
 jobs:
@@ -71,37 +68,28 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
 
-      - name: Create release branch
-        run: |
-          RELEASE_BRANCH="release-$(date +%s)"
-          git checkout -b $RELEASE_BRANCH
-          echo "RELEASE_BRANCH=$RELEASE_BRANCH" >> $GITHUB_ENV
 
       - name: Run semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PYPI_USER_AGENT: ${{ secrets.PYPI_USER_AGENT }}
-        run: npx semantic-release --extends /home/runner/work/sops-pre-commit/sops-pre-commit/.releaserc.full.js
+        run: ./.github/workflows/semantic-pre-release.sh release
+
+      - name: Commit changes
+        run: |
+          git add .
+          git commit -m "chore(release): ${{ env.RELEASE_VERSION }} [skip ci]" || echo "No changes to commit"
 
       - name: Push changes and create pull request
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git push -u origin $RELEASE_BRANCH
-          gh pr create --base main --head $RELEASE_BRANCH --title "Release ${{
-          env.RELEASE_BRANCH }}" --body "This PR contains the changes for the
-          next release."
+          git push origin release
+          PR_URL=$(gh pr create --base main --head release --title "Production Release ${{ env.RELEASE_VERSION }}" --body "This PR contains the changes for the production release.")
+          echo "PR_URL=$PR_URL" >> $GITHUB_ENV
 
-      - name: Update GitHub Release
+      - name: Generate release notes and artifacts
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
-          gh release edit $LATEST_TAG --prerelease=false
-
-      - name: Merge release pull request
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PR_NUMBER=$(gh pr list --base main --head ${{ env.RELEASE_BRANCH }} --json number --jq '.[0].number')
-          gh pr merge $PR_NUMBER --merge --delete-branch
+          gh release create ${{ env.RELEASE_VERSION }} --title "Production Release ${{ env.RELEASE_VERSION }}" --notes "Release notes for version ${{ env.RELEASE_VERSION }}"

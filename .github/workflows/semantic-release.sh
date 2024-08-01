@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# Determine if this is a pre-release or a release
+if [[ "$1" == "pre-release" ]]; then
+    RELEASE_TYPE="pre-release"
+    RELEASE_BRANCH_PREFIX="rc-v"
+    RELEASERC_FILE=".releaserc-pre-release.js"
+else
+    RELEASE_TYPE="release"
+    RELEASE_BRANCH_PREFIX="v"
+    RELEASERC_FILE=".releaserc-release.js"
+fi
+
 # Extract the new version from package.json
 NEW_VERSION=$(grep '"version":' package.json | sed 's/.*"version": "\(.*\)",/\1/')
 echo "New version extracted: $NEW_VERSION"
@@ -19,16 +30,16 @@ jq --arg new_version "$NEW_VERSION" '.version = $new_version' package.json > tmp
 # Replace the placeholder in pyproject.toml
 sed -i'' -e "s/\${nextRelease.version}/$NEW_VERSION/g" pyproject.toml
 
-# Run semantic-release
-echo "Running semantic-release..."
-npx semantic-release
+# Run semantic-release with the appropriate configuration file
+echo "Running semantic-release with $RELEASERC_FILE..."
+npx semantic-release --extends $RELEASERC_FILE
 
 # If semantic-release was successful, commit the changes to a new branch
 if [ $? -eq 0 ]; then
-    git checkout -b release-v$NEW_VERSION
+    git checkout -b ${RELEASE_BRANCH_PREFIX}$NEW_VERSION
     git add pyproject.toml
     git commit -m "chore: update pyproject.toml to $NEW_VERSION [skip ci]"
-    git push origin release-v$NEW_VERSION
+    git push origin ${RELEASE_BRANCH_PREFIX}$NEW_VERSION
 else
     echo "semantic-release failed"
 fi
