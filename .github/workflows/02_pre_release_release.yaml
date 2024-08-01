@@ -1,10 +1,11 @@
-name: 🥳 Pre-Release
+---
+name: 02 Pre-Release 🥳
 
 on:
   push:
     branches:
       - release
-  workflow_dispatch:
+  workflow_dispatch: {}
 
 jobs:
   pre-release:
