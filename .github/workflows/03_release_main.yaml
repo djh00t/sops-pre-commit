@@ -1,0 +1,95 @@
+name: 🚀 Release
+
+on:
+  push:
+    branches:
+      - release
+  workflow_dispatch: {}
+
+jobs:
+  full-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.1.7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.4.1"
+
+      - name: Load Node.js cache
+        uses: actions/cache@v4.0.2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-cache
+          restore-keys: |
+            ${{ runner.os }}-node-cache-
+
+      - name: Install Node.js dependencies
+        run: |
+          npm install
+          npm ci
+          npm update @semantic-release/github \
+          @octokit/request \
+          @semantic-release/commit-analyzer \
+          @semantic-release/release-notes-generator \
+          @semantic-release/changelog \
+          @semantic-release/git \
+          @semantic-release/github \
+          @semantic-release/exec
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Load Python cache
+        uses: actions/cache@v4.0.2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-cache-${{ hashFiles('**/requirements.in') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-cache-${{ hashFiles('**/requirements.in') }}
+            ${{ runner.os }}-pip-cache-
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install setuptools wheel twine packaging build toml
+
+      - name: Configure Git
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+
+
+      - name: Run semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PYPI_USER_AGENT: ${{ secrets.PYPI_USER_AGENT }}
+        run: ./.github/workflows/semantic-pre-release.sh release
+
+      - name: Commit changes
+        run: |
+          git add .
+          git commit -m "chore(release): ${{ env.RELEASE_VERSION }} [skip ci]" || echo "No changes to commit"
+
+      - name: Push changes and create pull request
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git push origin release
+          PR_URL=$(gh pr create --base main --head release --title "Production Release ${{ env.RELEASE_VERSION }}" --body "This PR contains the changes for the production release.")
+          echo "PR_URL=$PR_URL" >> $GITHUB_ENV
+
+      - name: Generate release notes and artifacts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create ${{ env.RELEASE_VERSION }} --title "Production Release ${{ env.RELEASE_VERSION }}" --notes "Release notes for version ${{ env.RELEASE_VERSION }}"
