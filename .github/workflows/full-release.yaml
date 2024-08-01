@@ -66,62 +66,31 @@ jobs:
           python -m pip install --upgrade pip
           pip install setuptools wheel twine packaging build toml
 
-      - name: Authenticate GitHub CLI
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
-
-      - name: Configure Git & Login to GitHub CLI
+      - name: Configure Git
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
 
-      - name: Run semantic-release with custom config
+      - name: Create release branch
+        run: |
+          RELEASE_BRANCH="release-$(date +%s)"
+          git checkout -b $RELEASE_BRANCH
+          echo "RELEASE_BRANCH=$RELEASE_BRANCH" >> $GITHUB_ENV
+
+      - name: Run semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PYPI_USER_AGENT: ${{ secrets.PYPI_USER_AGENT }}
         run: npx semantic-release --extends /home/runner/work/sops-pre-commit/sops-pre-commit/.releaserc.full.js
 
-      - name: Commit changes to a new branch
+      - name: Push changes and create pull request
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git checkout -b release-branch
-          git add .
-          git commit -m "chore(release): commit changes"
-          git push origin release-branch
-
-  create-pull-request:
-    name: Create Pull Request
-    runs-on: ubuntu-latest
-    needs: full-release
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Create Pull Request
-        id: create_pull_request
-        uses: peter-evans/create-pull-request@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: release-branch
-          base: main
-          title: 'Release PR'
-          body: 'This PR contains the changes for the next release.'
-          draft: false
-          auto-merge: true
-
-      - name: Merge Pull Request
-        uses: actions/github-script@v4
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const pull_number = parseInt("${{ steps.create_pull_request.outputs.pull_request_number }}", 10);
-            await github.pulls.merge({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: pull_number,
-              merge_method: 'squash'
-            });
+          git push -u origin $RELEASE_BRANCH
+          gh pr create --base main --head $RELEASE_BRANCH --title "Release ${{
+          env.RELEASE_BRANCH }}" --body "This PR contains the changes for the
+          next release."
 
       - name: Update GitHub Release
         env:
@@ -129,3 +98,10 @@ jobs:
         run: |
           LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
           gh release edit $LATEST_TAG --prerelease=false
+
+      - name: Merge release pull request
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=$(gh pr list --base main --head ${{ env.RELEASE_BRANCH }} --json number --jq '.[0].number')
+          gh pr merge $PR_NUMBER --merge --delete-branch
