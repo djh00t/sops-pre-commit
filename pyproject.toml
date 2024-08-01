@@ -1,5 +1,5 @@
 [tool.semantic_release]
-version = "0.0.3"
+version = "0.0.4"
 
 [tool.black]
 line-length = 79

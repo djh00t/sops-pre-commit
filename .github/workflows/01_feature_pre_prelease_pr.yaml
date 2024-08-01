@@ -7,10 +7,11 @@ on:
       - main
       - master
       - release
-  workflow_dispatch: {}
+      - pre-release
+  workflow_dispatch:
 
 jobs:
-  create-pr:
+  create-feature-pr:
     runs-on: ubuntu-latest
 
     steps:
@@ -73,7 +74,7 @@ jobs:
           if [ "$SOURCE_BRANCH" = "release" ]; then
             BASE_BRANCH="main"
           else
-            BASE_BRANCH="release"
+            BASE_BRANCH="pre-release"
           fi
           if [ -z "$PR_URL" ]; then
             PR_URL=$(gh pr create \
