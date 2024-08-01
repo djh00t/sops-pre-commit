@@ -88,8 +88,13 @@ jobs:
       - name: Run semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PYPI_USER_AGENT: ${{ secrets.PYPI_USER_AGENT }}
-        run: ./.github/workflows/semantic-pre-release.sh pre-release
+        run: ./.github/workflows/semantic-release.sh pre-release
+
+      - name: Commit changes
+        run: |
+          git add .
+          git commit -m "chore(pre-release): ${{ env.RELEASE_VERSION }} [skip ci]" || echo "No changes to commit"
+          git push origin pre-release
 
       # Check if PR exists, if it doesn't create one with a generated title using
       # pr-title-generate
