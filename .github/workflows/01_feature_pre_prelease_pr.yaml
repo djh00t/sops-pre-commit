@@ -1,5 +1,5 @@
 ---
-name: 🤖 Auto PR
+name: 01 Feature PR 🤖
 
 on:
   push:
