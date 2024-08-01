@@ -6,11 +6,12 @@ on:
     branches-ignore:
       - main
       - master
+      - release
       - pre-release
   workflow_dispatch:
 
 jobs:
-  create-pr:
+  create-feature-pr:
     runs-on: ubuntu-latest
 
     steps:
