@@ -10,7 +10,6 @@ module.exports = {
         {
           assets: ['CHANGELOG.md', 'package.json', 'package-lock.json'],
           message: 'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}',
-          // Add the branch configuration to create a release branch
           push: false,
         },
       ],
