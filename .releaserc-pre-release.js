@@ -1,6 +1,8 @@
 // .releaserc.pre-release.js
 module.exports = {
-  branches: [{ name: "pre-release", prerelease: true }],
+  branches: [
+    { name: "pre-release", prerelease: true }
+  ],
   repositoryUrl: "https://github.com/djh00t/sops-pre-commit.git",
   plugins: [
     "@semantic-release/commit-analyzer",
