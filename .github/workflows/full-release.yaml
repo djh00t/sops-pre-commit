@@ -1,4 +1,4 @@
-name: 🚀 Full Release
+name: 🚀 Release
 
 on:
   push:
@@ -81,23 +81,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PYPI_USER_AGENT: ${{ secrets.PYPI_USER_AGENT }}
-        run: npx semantic-release --extends /home/runner/work/sops-pre-commit/sops-pre-commit/.releaserc.full.js
+        run: |
+          npx semantic-release --extends /home/runner/work/sops-pre-commit/sops-pre-commit/.releaserc.full.js
+          echo "RELEASE_VERSION=$(cat package.json | jq -r .version)" >> $GITHUB_ENV
+
+      - name: Commit changes
+        run: |
+          git add .
+          git commit -m "chore(release): ${{ env.RELEASE_VERSION }} [skip ci]" || echo "No changes to commit"
 
       - name: Push changes and create pull request
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git push -u origin $RELEASE_BRANCH
-          gh pr create --base main --head $RELEASE_BRANCH --title "Release ${{
-          env.RELEASE_BRANCH }}" --body "This PR contains the changes for the
-          next release."
-
-      - name: Update GitHub Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
-          gh release edit $LATEST_TAG --prerelease=false
+          gh pr create --base main --head $RELEASE_BRANCH --title "Release ${{ env.RELEASE_VERSION }}" --body "This PR contains the changes for the next release."
 
       - name: Merge release pull request
         env:
@@ -105,3 +103,11 @@ jobs:
         run: |
           PR_NUMBER=$(gh pr list --base main --head ${{ env.RELEASE_BRANCH }} --json number --jq '.[0].number')
           gh pr merge $PR_NUMBER --merge --delete-branch
+
+      - name: Update GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create ${{ env.RELEASE_VERSION }} --title "Release ${{
+          env.RELEASE_VERSION }}" --notes "Release notes for version ${{
+          env.RELEASE_VERSION }}"
