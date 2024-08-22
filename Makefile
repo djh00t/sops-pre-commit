@@ -29,6 +29,14 @@ test:
 clean:
 	@echo "Cleaning up repo.............................................................🧹"
 	@pre-commit clean
+	@make push-prep
+	@echo "Repo cleaned up..............................................................✅"
+
+# Pre-push cleanup target
+push-prep:
+	@echo "Running poetry lock......................................................... 🔒"
+	@poetry lock
+	@echo "Removing temporary files.................................................... 🧹"
 	@find . -type f -name '*.pyc' -delete
 	@find . -type d -name '__pycache__' -exec rm -rf {} +
 	@rm -rf .aider*
@@ -41,12 +49,4 @@ clean:
 	@rm -rf dist
 	@rm -rf htmlcov
 	@rm -rf node_modules
-	@echo "Repo cleaned up..............................................................✅"
-
-# Pre-push cleanup target
-push-prep:
-	@echo "Running poetry lock......................................................... 🔒"
-	@poetry lock
-	@echo "Removing temporary files.................................................... 🧹"
-	@find . -type f -name '*.pyc' -delete
 	@echo "Removed temporary files..................................................... ✅"
