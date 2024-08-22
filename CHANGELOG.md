@@ -1,3 +1,5 @@
+## [1.0.0-release.12](https://github.com/djh00t/sops-pre-commit/compare/v1.0.0-release.11...v1.0.0-release.12) (2024-08-01)
+
 ## [1.0.0-release.11](https://github.com/djh00t/sops-pre-commit/compare/v1.0.0-release.10...v1.0.0-release.11) (2024-08-01)
 
 ## [1.0.0-release.10](https://github.com/djh00t/sops-pre-commit/compare/v1.0.0-release.9...v1.0.0-release.10) (2024-08-01)

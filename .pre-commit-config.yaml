@@ -85,13 +85,13 @@ repos:
           # arguments, returns, yields, and raises sections.
         #]  # Additional flake8 plugins
 
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.13.2  # Use the latest stable release
-    hooks:
-      - id: isort
-        name: isort (python)  # Optional, customize hook name
-        args: ['--profile', 'black']  # Example of passing arguments to isort
-        language_version: python3  # Specify the Python version
+#   - repo: https://github.com/PyCQA/isort
+#     rev: 5.13.2  # Use the latest stable release
+#     hooks:
+#       - id: isort
+#         name: isort (python)  # Optional, customize hook name
+#         args: ['--profile', 'black']  # Example of passing arguments to isort
+#         language_version: python3  # Specify the Python version
 
   - repo: https://github.com/Lucas-C/pre-commit-hooks
     rev: v1.3.1

@@ -1,32 +1,79 @@
+[tool.poetry]
+name = "sops-pre-commit"
+version = "0.0.4"
+description = "Check for unencrypted secrets and encrypt them using sops and age/gpg. Forked from https://github.com/onedr0p/sops-pre-commit"
+authors = ["David Hooton <klingon_tools+david@hooton.org>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/djh00t/sops-pre-commit"
+repository = "https://github.com/djh00t/sops-pre-commit"
+keywords = ["sops", "pre-commit", "encryption", "secrets"]
+package-mode = false
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 2",
+    "Programming Language :: Python :: 2.6",
+    "Programming Language :: Python :: 2.7",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.3",
+    "Programming Language :: Python :: 3.4",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",]
+
+[tool.poetry.dependencies]
+python = ">=3.9"
+typing = "*"
+ruamel-yaml = "^0.18.6"
+iniconfig = "^2.0.0"
+argparse = "^1.4.0"
+datetime = "^5.5"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.8.0"
+coverage = "^7.6.1"
+dlint = "^0.15.0"
+flake8 = "^7.1.1"
+isort = "^5.13.2"
+jinja2 = "^3.1.4"
+mypy = "^1.11.1"
+pre-commit = "^3.8.0"
+pylint = "^3.2.6"
+pytest = "^8.3.2"
+pytest-cov = "^5.0.0"
+pyyaml = "^6.0.2"
+sops = "^1.18"
+toml = "^0.10.2"
+types-toml = "^0.10.8.20240310"
+yamllint = "^1.35.1"
+klingon-tools = "^2.1.1"
+
+[tool.poetry.scripts]
+forbid_secrets = "hooks.forbid_secrets:main"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.semantic_release]
 version = "0.0.4"
 
 [tool.black]
-line-length = 79
+line-length = 80
 target-version = ["py36", "py37", "py38", "py39", "py310", "py311", "py312", "py313"]
 include = "\\.pyi?$"
 exclude = "\\.eggs|\\.git|\\.hg|\\.mypy_cache|\\.tox|\\.venv|_build|buck-out|build|dist"
 
 [tool.flake8]
-# ignore = ["E501"]
-max-line-length = 79
+ignore = ["E501"]
+max-line-length = 80
 verbose = 3
 
-[tool.pylint."MESSAGES CONTROL"]
-disable = [
-#     "bad-continuation",
-#     "duplicate-code",
-    "import-error",
-#     "missing-docstring",
-#     "multiple-imports"
-]
-
-[tool.pylint.FORMAT]
-max-line-length = 79
+[tool.pylint.format]
+max-line-length = 80
 
 [tool.yapf]
 based_on_style = 'google'
-column_limit = 79
+column_limit = 80
 dedent_closing_brackets = true
 coalesce_brackets = true
 spaces_before_comment = 4
@@ -34,11 +81,6 @@ split_before_logical_operator = true
 
 [tool.yapfignore]
 ignore_patterns = ["temp/**/*.py", "temp2/*.py"]
-
-[tool.mypy]
-exclude = 'tmp/hooks'
-sqlite_cache = true
-install_types = true
 
 [tool.pytest.ini_options]
 addopts = "-ra -q"
