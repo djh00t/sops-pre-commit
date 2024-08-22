@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sops-pre-commit"
-version = "0.0.4"
+version = "0.0.5"
 description = "Check for unencrypted secrets and encrypt them using sops and age/gpg. Forked from https://github.com/onedr0p/sops-pre-commit"
 authors = ["David Hooton <klingon_tools+david@hooton.org>"]
 license = "MIT"
@@ -53,9 +53,6 @@ forbid_secrets = "hooks.forbid_secrets:main"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.semantic_release]
-version = "0.0.4"
 
 [tool.black]
 line-length = 80
