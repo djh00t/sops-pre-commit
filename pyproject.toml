@@ -8,6 +8,7 @@ readme = "README.md"
 homepage = "https://github.com/djh00t/sops-pre-commit"
 repository = "https://github.com/djh00t/sops-pre-commit"
 keywords = ["sops", "pre-commit", "encryption", "secrets"]
+package-mode = false
 classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 2",
