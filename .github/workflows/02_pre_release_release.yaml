@@ -1,5 +1,4 @@
----
-name: 02 Pre-Release 🥳
+name: 02 Pre Release PR 🥳
 
 on:
   push:
@@ -16,7 +15,7 @@ jobs:
         uses: actions/checkout@v4.1.7
         with:
           fetch-depth: 0
-
+          
       - name: Configure Git
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
