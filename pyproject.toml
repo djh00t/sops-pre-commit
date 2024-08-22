@@ -8,20 +8,11 @@ include = "\\.pyi?$"
 exclude = "\\.eggs|\\.git|\\.hg|\\.mypy_cache|\\.tox|\\.venv|_build|buck-out|build|dist"
 
 [tool.flake8]
-# ignore = ["E501"]
+ignore = ["E501"]
 max-line-length = 79
 verbose = 3
 
-[tool.pylint."MESSAGES CONTROL"]
-disable = [
-#     "bad-continuation",
-#     "duplicate-code",
-    "import-error",
-#     "missing-docstring",
-#     "multiple-imports"
-]
-
-[tool.pylint.FORMAT]
+[tool.pylint.format]
 max-line-length = 79
 
 [tool.yapf]
@@ -35,12 +26,61 @@ split_before_logical_operator = true
 [tool.yapfignore]
 ignore_patterns = ["temp/**/*.py", "temp2/*.py"]
 
-[tool.mypy]
-exclude = 'tmp/hooks'
-sqlite_cache = true
-install_types = true
-
 [tool.pytest.ini_options]
 addopts = "-ra -q"
 testpaths = ["tests"]
 minversion = "8.3.1 "
+
+[tool.poetry]
+name = "sops-pre-commit"
+version = "0.0.3"
+description = "Check for unencrypted secrets and encrypt them using sops and age/gpg. Forked from https://github.com/onedr0p/sops-pre-commit"
+authors = ["David Hooton <klingon_tools+david@hooton.org>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/djh00t/sops-pre-commit"
+repository = "https://github.com/djh00t/sops-pre-commit"
+keywords = ["sops", "pre-commit", "encryption", "secrets"]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 2",
+    "Programming Language :: Python :: 2.6",
+    "Programming Language :: Python :: 2.7",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.3",
+    "Programming Language :: Python :: 3.4",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+argparse = "*"
+datetime = "*"
+typing = "*"
+iniconfig = "*"
+
+[tool.poetry.dev-dependencies]
+black = "*"
+coverage = "*"
+dlint = "*"
+flake8 = "*"
+isort = "*"
+jinja2 = "*"
+mypy = "*"
+pre-commit = "*"
+pylint = "*"
+pytest = "*"
+pytest-cov = "*"
+PyYAML = "*"
+sops = "*"
+toml = "*"
+types-toml = "*"
+yamllint = "*"
+klingon_tools = "*"
+
+[tool.poetry.scripts]
+forbid_secrets = "hooks.forbid_secrets:main"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
