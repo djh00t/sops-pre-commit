@@ -2,7 +2,6 @@
 name: 01 Feature PR 🤖
 
 on:
-  # Push to all but main, master
   push:
     branches-ignore:
       - main
@@ -19,7 +18,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4.1.7
         with:
-          fetch-depth: 0 # Fetch all branches
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -88,16 +87,14 @@ jobs:
         run: make install
 
       - name: Run Unit Tests
-        run: poetry run pytest
+        run: make test
 
-      # Check if PR exists, if it doesn't create one with a generated title using
-      # pr-title-generate
       - name: Create or Update PR
         id: pr
         run: |
-          SOURCE_BRANCH=$(poetry run git rev-parse --abbrev-ref HEAD)
-          PR_URL=$(poetry run gh pr list --head $SOURCE_BRANCH --json url --jq '.[0].url' || echo "")
-          PR_TITLE=$(poetry run pr-title-generate)
+          SOURCE_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          PR_URL=$(gh pr list --head $SOURCE_BRANCH --json url --jq '.[0].url' || echo "")
+          PR_TITLE=$(pr-title-generate)
           echo "PR_TITLE: $PR_TITLE"
           BASE_BRANCH="pre-release"
           if [ -z "$PR_URL" ]; then
