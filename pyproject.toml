@@ -2,22 +2,22 @@
 version = "0.0.3"
 
 [tool.black]
-line-length = 79
+line-length = 120
 target-version = ["py36", "py37", "py38", "py39", "py310", "py311", "py312", "py313"]
 include = "\\.pyi?$"
 exclude = "\\.eggs|\\.git|\\.hg|\\.mypy_cache|\\.tox|\\.venv|_build|buck-out|build|dist"
 
 [tool.flake8]
 ignore = ["E501"]
-max-line-length = 79
+max-line-length = 120
 verbose = 3
 
 [tool.pylint.format]
-max-line-length = 79
+max-line-length = 120
 
 [tool.yapf]
 based_on_style = 'google'
-column_limit = 79
+column_limit = 120
 dedent_closing_brackets = true
 coalesce_brackets = true
 spaces_before_comment = 4
