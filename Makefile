@@ -17,13 +17,12 @@ help:
 
 # Install target
 install:
-	poetry install
-	poetry update
+	pip install -r requirements.txt
 	pre-commit install --overwrite
 
 # Test target
 test:
-	poetry run pytest -v
+	pytest -v
 
 # Clean target
 clean:
@@ -34,8 +33,6 @@ clean:
 
 # Pre-push cleanup target
 push-prep:
-	@echo "Running poetry lock......................................................... 🔒"
-	@poetry lock
 	@echo "Removing temporary files.................................................... 🧹"
 	@find . -type f -name '*.pyc' -delete
 	@find . -type d -name '__pycache__' -exec rm -rf {} +
