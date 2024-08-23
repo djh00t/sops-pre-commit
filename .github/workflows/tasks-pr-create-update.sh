@@ -50,7 +50,7 @@ cmd_logger() {
 echo "Starting PR Create/Update"
 
 # Generate current $PR_BODY and export it as an environment variable
-cmd_logger "Generate current PR Body merging $BRANCH_CURRENT into $BRANCH_BASE" "export PR_BODY=\"$(poetry run python3 .github/workflows/pr_body_gen.py $BRANCH_CURRENT $BRANCH_BASE)\""
+cmd_logger "Generate current PR Body merging $BRANCH_CURRENT into $BRANCH_BASE" "export PR_BODY=\"$(poetry run python3 .github/workflows/pr_body_gen.py $BRANCH_CURRENT $BRANCH_BASE | tr '\n' ' ' | tr -d '\"')\""
 
 # EXISTING PR: Update PR body
 if [ -n "$PR_EXISTS" ]; then
