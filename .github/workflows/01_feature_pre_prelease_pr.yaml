@@ -27,7 +27,7 @@ jobs:
           # Run the setup-git script
           .github/workflows/tasks-setup-git.sh
         env:
-          stage: 'pre-release'
+          WORKFLOW_STAGE: 'pre-release'
 
       - name: Set up environment variables & git config
         run: |
