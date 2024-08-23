@@ -38,21 +38,24 @@ jobs:
         python-version: "3.x"
 
     - name: Install Poetry
+      uses: abatilo/actions-poetry@v3
+
+    - name: Setup a local virtual environment (if no poetry.toml file)
       run: |
-        curl -sSL https://install.python-poetry.org | python3 -
+        poetry config virtualenvs.create true --local
+        poetry config virtualenvs.in-project true --local
 
-    - name: Load Poetry cache
-      uses: actions/cache@v4.0.2
+    - name: Load virtual environment cache
+      uses: actions/cache@v4
       with:
-        path: |
-          ~/.cache/pypoetry
-          ~/.cache/pip
-        key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+        path: ./.venv
+        key: venv-${{ hashFiles('poetry.lock') }}
         restore-keys: |
-          ${{ runner.os }}-poetry-
+          venv-${{ runner.os }}-poetry-${{ hashFiles('pyproject.toml') }}
 
-    - name: Install Python Requirements
-      run: poetry install --with dev
+    - name: Install Python Dependencies
+      run: |
+        poetry install --with dev
 
     - name: Run Unit Tests
       run: poetry run pytest
