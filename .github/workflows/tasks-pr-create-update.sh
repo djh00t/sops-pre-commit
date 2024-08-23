@@ -46,8 +46,6 @@ cmd_logger() {
     return $status
 }
 
-echo "PR_EXISTS: $PR_EXISTS"
-
 # Announce start of script
 echo "Starting PR Create/Update"
 
