@@ -48,6 +48,9 @@ cmd_logger() {
 # Announce start of script
 echo "Starting PR Create/Update"
 
+# Install python dependencies
+pip install jinja2 klingon_tools
+
 # Generate current $PR_BODY and export it as an environment variable
 cmd_logger "Generate current PR Body merging $BRANCH_CURRENT into $BRANCH_BASE" "export PR_BODY=\"$(poetry run python3 .github/workflows/pr_body_gen.py $BRANCH_CURRENT $BRANCH_BASE)\""
 
