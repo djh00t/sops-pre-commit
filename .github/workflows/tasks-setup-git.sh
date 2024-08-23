@@ -46,6 +46,8 @@ cmd_logger() {
     return $status
 }
 
+echo "PR_EXISTS: $PR_EXISTS"
+
 # Announce start of script
 echo "Setting up Git & GitHub settings"
 
