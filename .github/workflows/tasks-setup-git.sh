@@ -37,7 +37,7 @@ cmd_logger() {
 echo "Setting up Git & GitHub settings"
 
 # Authenticate GitHub CLI
-cmd_logger "Authenticate GitHub CLI" "unset GH_TOKEN; echo \"${{ secrets.GITHUB_TOKEN }}\" | gh auth login --with-token"
+cmd_logger "Authenticate GitHub CLI" "unset GH_TOKEN && echo \"${{ secrets.GITHUB_TOKEN }}\" | gh auth login --with-token"
 
 # Configure Git & Login to GitHub CLI
 cmd_logger "Configure Git & Login to GitHub CLI" "git config --global user.email \"github-actions[bot]@users.noreply.github.com\"; git config --global user.name \"github-actions[bot]\""
