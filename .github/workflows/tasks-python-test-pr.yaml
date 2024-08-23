@@ -8,6 +8,9 @@ on:
         description: 'Workflow Stage'
         required: true
         type: string
+    secrets:
+      OPENAI_API_KEY:
+        required: true
 
 jobs:
   tasks_python:
