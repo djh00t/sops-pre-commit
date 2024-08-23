@@ -65,7 +65,7 @@ if [ -z "$PR_EXISTS" ]; then
     cmd_logger "Generating PR Title" "export PR_TITLE=\"$(pr-title-generate)\"" "echo \"PR Title: $PR_TITLE\""
 
     # Create PR,  if it ends successfully otherwise echo an error.
-    cmd_logger "Creating PR" "PR_URL=$(gh pr create --title \"$PR_TITLE\" --body \"$PR_BODY\" --base $BRANCH_BASE --head $BRANCH_CURRENT) || echo \"Failed to create PR\"" "echo \"PR Created: $PR_URL\""
+    cmd_logger "Creating PR" "PR_URL=\"$(gh pr create --title \"$PR_TITLE\" --body \"$PR_BODY\" --base $BRANCH_BASE --head $BRANCH_CURRENT)\" || echo \"Failed to create PR\"" "echo \"PR Created: $PR_URL\""
 fi
 
 # Announce end of script
