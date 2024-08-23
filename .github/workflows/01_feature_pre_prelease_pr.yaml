@@ -26,6 +26,14 @@ jobs:
           .github/workflows/tasks-setup-variables.sh
           # Run the setup-git script
           .github/workflows/tasks-setup-git.sh
+        env:
+          stage: 'pre-release'
+
+      - name: Set up environment variables & git config
+        run: |
+          .github/workflows/tasks-setup-variables.sh
+          .github/workflows/tasks-setup-git.sh
+
 
       - name: Setup Python
         uses: actions/setup-python@v5.1.0
