@@ -21,6 +21,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Environment
+        id: setup-env
         run: |
           # Run the setup-variables script
           .github/workflows/tasks-setup-variables.sh
@@ -39,15 +40,15 @@ jobs:
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
 
-#      - name: Load Poetry cache
-#        uses: actions/cache@v4.0.2
-#        with:
-#          path: |
-#            ~/.cache/pypoetry
-#            ~/.cache/pip
-#          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
-#          restore-keys: |
-#            ${{ runner.os }}-poetry-
+      - name: Load Poetry cache
+        uses: actions/cache@v4.0.2
+        with:
+          path: |
+            ~/.cache/pypoetry
+            ~/.cache/pip
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
 
       - name: Install Python Requirements
         run: poetry install --with dev
@@ -63,5 +64,4 @@ jobs:
         shell: bash
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WORKFLOW_STAGE: 'pre-release'
