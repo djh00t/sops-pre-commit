@@ -204,7 +204,7 @@ def generate_motivation_context() -> str:
         )
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
-        print(f"Failed to generate PR context: {e}")
+        print(f"Failed to generate PR context: {e}", file=sys.stderr)
         return ""
 
 
@@ -230,6 +230,18 @@ try:
 except subprocess.CalledProcessError as e:
     SUMMARY = "Summary generation failed."
     print(f"Error generating summary: {e}", file=sys.stderr)
+
+try:
+    MOTIVATION_CONTEXT = generate_motivation_context()
+except subprocess.CalledProcessError as e:
+    MOTIVATION_CONTEXT = "Motivation context generation failed."
+    print(f"Failed to generate PR context: {e}", file=sys.stderr)
+
+try:
+    PR_NUMBER = get_pr_number()
+except subprocess.CalledProcessError as e:
+    PR_NUMBER = "Unknown"
+    print(f"Failed to get PR number: {e}", file=sys.stderr)
 
 try:
     MOTIVATION_CONTEXT = generate_motivation_context()
