@@ -73,7 +73,7 @@ fi
 
 # If a PR exists, get the PR URL
 if [ -n "$PR_EXISTS" ]; then
-    cmd_logger "Getting the PR URL" "export PR_URL=$(gh pr view $PR_NUMBER --json html_url --jq '.html_url')"
+    cmd_logger "Getting the PR URL" "export PR_URL=$(gh pr view $PR_NUMBER --json url --jq '.url')"
 fi
 
 # If a PR exists, get the PR title and remove problematic characters
