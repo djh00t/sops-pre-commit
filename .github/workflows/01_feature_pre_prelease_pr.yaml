@@ -20,7 +20,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up environment & git variables
+      - name: Set up environment & git config
         run: |
           # Run the setup-variables script
           .github/workflows/tasks-setup-variables.sh
@@ -29,10 +29,7 @@ jobs:
         env:
           WORKFLOW_STAGE: 'pre-release'
 
-      - name: Set up environment variables & git config
-        run: |
-          .github/workflows/tasks-setup-variables.sh
-          .github/workflows/tasks-setup-git.sh
+
 
 
       - name: Setup Python
