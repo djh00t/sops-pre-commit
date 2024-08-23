@@ -46,6 +46,8 @@ cmd_logger() {
     return $status
 }
 
+echo "PR_EXISTS: $PR_EXISTS"
+
 # Announce start of script
 echo "Starting PR Create/Update"
 
@@ -63,7 +65,7 @@ fi
 if [ -z "$PR_EXISTS" ]; then
     echo "PR does not exist, creating new PR.."
     # Generate PR Title
-    cmd_logger "Generating PR Title" "export PR_TITLE=\"\$(poetry pr-title-generate)\"" "echo \"PR Title: $PR_TITLE\""
+    cmd_logger "Generating PR Title" "export PR_TITLE=\"\$(poetry run pr-title-generate)\"" "echo \"PR Title: $PR_TITLE\""
 
     # Create PR,  if it ends successfully otherwise echo an error.
     cmd_logger "Creating PR" "PR_URL=\"\$(gh pr create --title \"$PR_TITLE\" --body \"$PR_BODY\" --base $BRANCH_BASE --head $BRANCH_CURRENT)\" || echo \"Failed to create PR\"" "echo \"PR Created: $PR_URL\""
