@@ -17,32 +17,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up environment variables
+      - name: Set up environment variables & git config
         run: |
-          # Setup GITHUB_TOKEN
-          # echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
-          # Setup GH_TOKEN
-          # echo "GH_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
-          # Setup OpenAI API Key
-          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
-          # Get Current PR Title
-          PR_TITLE=$(gh pr list --json title --jq '.[0].title' || echo "")
-          # Sanitize PR_TITLE to remove problematic characters
-          SANITIZED_PR_TITLE=$(echo "$PR_TITLE" | tr -d '\n' | tr -d '\r' | tr -d '"')
-          echo "PR_TITLE=$SANITIZED_PR_TITLE" >> $GITHUB_ENV
-          echo "PR TITLE: $PR_TITLE"
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-
-      - name: Authenticate GitHub CLI
-        run: |
-          unset GH_TOKEN
-          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
-
-      - name: Configure Git & Login to GitHub CLI
-        run: |
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
+          .github/workflows/tasks-setup-variables.sh
+          .github/workflows/tasks-setup-git.sh
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

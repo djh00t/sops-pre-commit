@@ -20,49 +20,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up environment variables
+      - name: Set up environment & git variables
         run: |
-          # Setup GITHUB_TOKEN
-          # echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
-          # Setup GH_TOKEN
-          # echo "GH_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
-          # Setup OpenAI API Key
-          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
-          # Get Current PR Title
-          PR_TITLE=$(gh pr list --json title --jq '.[0].title' || echo "")
-          # Sanitize PR_TITLE to remove problematic characters
-          SANITIZED_PR_TITLE=$(echo "$PR_TITLE" | tr -d '\n' | tr -d '\r' | tr -d '"')
-          echo "PR_TITLE=$SANITIZED_PR_TITLE" >> $GITHUB_ENV
-          echo "PR TITLE: $PR_TITLE"
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-
-      - name: Authenticate GitHub CLI
-        run: |
-          unset GH_TOKEN
-          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
-
-      - name: Configure Git & Login to GitHub CLI
-        run: |
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22.4.1"
-
-      - name: Load Node.js cache
-        uses: actions/cache@v4.0.2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-cache
-          restore-keys: |
-            ${{ runner.os }}-node-cache-
-
-      - name: Install Node.js dependencies
-        run: |
-          npm install
+          # Run the setup-variables script
+          .github/workflows/tasks-setup-variables.sh
+          # Run the setup-git script
+          .github/workflows/tasks-setup-git.sh
 
       - name: Setup Python
         uses: actions/setup-python@v5.1.0
