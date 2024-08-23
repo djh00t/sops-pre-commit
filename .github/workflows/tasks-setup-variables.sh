@@ -45,14 +45,14 @@ cmd_logger() {
     return $status
 }
 
-# Make sure ${{ inputs.stage }} is set and isn't blank
-if [ -z "${{ inputs.stage }}" ]; then
+# Make sure ${{ env.stage }} is set and isn't blank
+if [ -z "${{ env.stage }}" ]; then
     echo "Stage input variable is not set. Exiting..."
     exit 1
 fi
 
 # Announce start of script
-echo "Setting up variables for stage: ${{ inputs.stage }}"
+echo "Setting up variables for stage: ${{ env.stage }}"
 
 # Setup the BRANCH_BASE variable
 cmd_logger "Setup the BRANCH_BASE variable" "export BRANCH_BASE=${{ env.stage }}"
