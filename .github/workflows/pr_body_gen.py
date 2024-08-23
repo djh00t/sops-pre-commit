@@ -194,7 +194,7 @@ def generate_motivation_context() -> str:
     """
     try:
         result = subprocess.run(
-            ["pr-context-generate"],
+            ["poetry", "run", "pr-context-generate"],
             capture_output=True,
             text=True,
             check=True,
