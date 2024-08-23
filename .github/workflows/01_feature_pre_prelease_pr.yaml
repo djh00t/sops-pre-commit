@@ -1,13 +1,12 @@
----
 name: 01 Feature PR 🤖
 
 on:
   push:
     branches-ignore:
-      - main
-      - master
-      - release
-      - pre-release
+    - main
+    - master
+    - release
+    - pre-release
   workflow_dispatch: {}
 
 jobs:
@@ -15,53 +14,53 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4.1.7
-        with:
-          fetch-depth: 0
+    - name: Checkout repository
+      uses: actions/checkout@v4.1.7
+      with:
+        fetch-depth: 0
 
-      - name: Setup Environment
-        id: setup-env
-        run: |
-          # Run the setup-variables script
-          .github/workflows/tasks-setup-variables.sh
-          # Run the setup-git script
-          .github/workflows/tasks-setup-git.sh
-        env:
-          WORKFLOW_STAGE: 'pre-release'
-          GH_TOKEN: ${{ github.token }}
+    - name: Setup Environment
+      id: setup-env
+      run: |
+        # Run the setup-variables script
+        .github/workflows/tasks-setup-variables.sh
+        # Run the setup-git script
+        .github/workflows/tasks-setup-git.sh
+      env:
+        WORKFLOW_STAGE: 'pre-release'
+        GH_TOKEN: ${{ github.token }}
 
-      - name: Setup Python
-        uses: actions/setup-python@v5.1.0
-        with:
-          python-version: "3.x"
+    - name: Setup Python
+      uses: actions/setup-python@v5.1.1
+      with:
+        python-version: "3.x"
 
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
 
-      - name: Load Poetry cache
-        uses: actions/cache@v4.0.2
-        with:
-          path: |
-            ~/.cache/pypoetry
-            ~/.cache/pip
-          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-poetry-
+    - name: Load Poetry cache
+      uses: actions/cache@v4.0.2
+      with:
+        path: |
+          ~/.cache/pypoetry
+          ~/.cache/pip
+        key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-poetry-
 
-      - name: Install Python Requirements
-        run: poetry install --with dev
+    - name: Install Python Requirements
+      run: poetry install --with dev
 
-      - name: Run Unit Tests
-        run: poetry run pytest
+    - name: Run Unit Tests
+      run: poetry run pytest
 
-      - name: Create or Update PR
-        id: pr
-        run: |
-          # Run PR Create/Update script
-          .github/workflows/tasks-pr-create-update.sh
-        shell: bash
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          WORKFLOW_STAGE: 'pre-release'
+    - name: Create or Update PR
+      id: pr
+      run: |
+        # Run PR Create/Update script
+        .github/workflows/tasks-pr-create-update.sh
+      shell: bash
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        WORKFLOW_STAGE: 'pre-release'
