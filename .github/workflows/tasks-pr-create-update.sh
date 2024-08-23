@@ -50,7 +50,7 @@ cmd_logger() {
 echo "Starting PR Create/Update"
 
 # Generate current $PR_BODY and export it as an environment variable
-cmd_logger "Generate current PR Body merging $BRANCH_CURRENT into $BRANCH_BASE" "export PR_BODY=\"$(poetry run python3 .github/workflows/pr_body_gen.py $BRANCH_CURRENT $BRANCH_BASE | tr '\n' ' ' | tr -d '\"')\""
+cmd_logger "Generate current PR Body merging $BRANCH_CURRENT into $BRANCH_BASE" "export PR_BODY=\"\$(poetry run python3 .github/workflows/pr_body_gen.py $BRANCH_CURRENT $BRANCH_BASE | tr '\n' ' ' | tr -d '\"')\""
 
 # EXISTING PR: Update PR body
 if [ -n "$PR_EXISTS" ]; then
@@ -63,10 +63,10 @@ fi
 if [ -z "$PR_EXISTS" ]; then
     echo "PR does not exist, creating new PR.."
     # Generate PR Title
-    cmd_logger "Generating PR Title" "export PR_TITLE=\"$(pr-title-generate)\"" "echo \"PR Title: $PR_TITLE\""
+    cmd_logger "Generating PR Title" "export PR_TITLE=\"\$(poetry pr-title-generate)\"" "echo \"PR Title: $PR_TITLE\""
 
     # Create PR,  if it ends successfully otherwise echo an error.
-    cmd_logger "Creating PR" "PR_URL=\"$(gh pr create --title \"$PR_TITLE\" --body \"$PR_BODY\" --base $BRANCH_BASE --head $BRANCH_CURRENT)\" || echo \"Failed to create PR\"" "echo \"PR Created: $PR_URL\""
+    cmd_logger "Creating PR" "PR_URL=\"\$(gh pr create --title \"$PR_TITLE\" --body \"$PR_BODY\" --base $BRANCH_BASE --head $BRANCH_CURRENT)\" || echo \"Failed to create PR\"" "echo \"PR Created: $PR_URL\""
 fi
 
 # Announce end of script
