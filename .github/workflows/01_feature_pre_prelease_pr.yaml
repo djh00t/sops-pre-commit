@@ -59,7 +59,7 @@ jobs:
         id: pr
         run: |
           # Run PR Create/Update script
-          .github/workflows/tasks-create-update-pr.sh
+          .github/workflows/tasks-pr-create-update.sh
         shell: /usr/bin/bash -e {0}
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
