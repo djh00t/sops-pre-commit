@@ -1,0 +1,71 @@
+# .github/workflows/tasks-python.yml
+name: Python Tasks
+
+on:
+  workflow_call:
+    inputs:
+      stage:
+        description: 'Workflow Stage'
+        required: true
+        type: string
+
+jobs:
+  tasks_python:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4.1.7
+      with:
+        fetch-depth: 0
+
+    - name: Starting Stage
+      run: "echo Starting Python Stage: ${{ inputs.stage }}"
+
+    - name: Setup Environment
+      id: setup-env
+      run: |
+        # Run the setup-variables script
+        .github/workflows/tasks-setup-variables.sh
+        # Run the setup-git script
+        .github/workflows/tasks-setup-git.sh
+      env:
+        WORKFLOW_STAGE: ${{ inputs.stage }}
+        GH_TOKEN: ${{ github.token }}
+
+    - name: Setup Python
+      uses: actions/setup-python@v5.1.1
+      with:
+        python-version: "3.x"
+
+    - name: Install Poetry
+      uses: abatilo/actions-poetry@v3
+
+    - name: Setup a local virtual environment (if no poetry.toml file)
+      run: |
+        poetry config virtualenvs.create true --local
+        poetry config virtualenvs.in-project true --local
+
+    - name: Load virtual environment cache
+      uses: actions/cache@v4
+      with:
+        path: ./.venv
+        key: venv-${{ hashFiles('poetry.lock') }}
+        restore-keys: |
+          venv-${{ runner.os }}-poetry-${{ hashFiles('pyproject.toml') }}
+
+    - name: Install Python Dependencies
+      run: |
+        poetry install --with dev
+
+    - name: Run Unit Tests
+      run: poetry run pytest
+
+    - name: Create or Update PR
+      id: pr
+      run: |
+        # Run PR Create/Update script
+        .github/workflows/tasks-pr-create-update.sh
+      shell: bash
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        WORKFLOW_STAGE: ${{ inputs.stage }}
