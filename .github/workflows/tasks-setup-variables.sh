@@ -45,17 +45,17 @@ cmd_logger() {
     return $status
 }
 
-# Make sure ${{ env.stage }} is set and isn't blank
-if [ -z "${{ env.stage }}" ]; then
+# Make sure ${{ WORKFLOW_STAGE }} is set and isn't blank
+if [ -z "${{ WORKFLOW_STAGE }}" ]; then
     echo "Stage input variable is not set. Exiting..."
     exit 1
 fi
 
 # Announce start of script
-echo "Setting up variables for stage: ${{ env.stage }}"
+echo "Setting up variables for stage: ${{ WORKFLOW_STAGE }}"
 
 # Setup the BRANCH_BASE variable
-cmd_logger "Setup the BRANCH_BASE variable" "export BRANCH_BASE=${{ env.stage }}"
+cmd_logger "Setup the BRANCH_BASE variable" "export BRANCH_BASE=${{ WORKFLOW_STAGE }}"
 
 # Capitalise first char of $BRANCH_BASE and export as $STAGE_CAP
 cmd_logger "Capitalise first char of $BRANCH_BASE" "export STAGE_CAP=$(echo "$BRANCH_BASE" | awk '{print toupper(substr($0, 1, 1)) tolower(substr($0, 2))}')"
