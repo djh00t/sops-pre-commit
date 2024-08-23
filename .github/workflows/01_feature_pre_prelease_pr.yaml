@@ -14,3 +14,5 @@ jobs:
     uses: ./.github/workflows/tasks-python-test-pr.yaml
     with:
       stage: "pre-release"
+    secrets:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
