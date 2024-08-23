@@ -78,7 +78,7 @@ fi
 
 # If a PR exists, get the PR title and remove problematic characters
 if [ -n "$PR_EXISTS" ]; then
-    cmd_logger "Getting the PR title" "export PR_TITLE=$(gh pr view $PR_NUMBER --json title --jq '.title')"
+    cmd_logger "Getting the PR title" "export PR_TITLE=\"\$(gh pr view $PR_NUMBER --json title --jq '.title')\""
 fi
 
 # Log PR details if a PR exists
