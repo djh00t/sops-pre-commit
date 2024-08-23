@@ -13,7 +13,6 @@ import os
 import re
 import subprocess
 import sys
-
 from jinja2 import Template
 
 # Path to the Jinja2 template for the pull request body
@@ -241,6 +240,9 @@ pr_body = template.render(
     motivation_context=motivation_context,
     types=types,
 )
+
+# Add a newline at the end of the pull request body
+pr_body += "\n"
 
 # Print the generated pull request body
 print(pr_body)
