@@ -55,7 +55,7 @@ fi
 echo "Setting up variables for stage: ${{ inputs.stage }}"
 
 # Setup the BRANCH_BASE variable
-cmd_logger "Setup the BRANCH_BASE variable" "export BRANCH_BASE=${{ inputs.stage }}"
+cmd_logger "Setup the BRANCH_BASE variable" "export BRANCH_BASE=${{ env.stage }}"
 
 # Capitalise first char of $BRANCH_BASE and export as $STAGE_CAP
 cmd_logger "Capitalise first char of $BRANCH_BASE" "export STAGE_CAP=$(echo "$BRANCH_BASE" | awk '{print toupper(substr($0, 1, 1)) tolower(substr($0, 2))}')"
