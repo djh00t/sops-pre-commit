@@ -53,7 +53,7 @@ echo "Starting PR Create/Update"
 source .venv/bin/activate
 
 # Generate current $PR_BODY and export it as an environment variable
-cmd_logger "Generate current PR Body merging $BRANCH_CURRENT into $BRANCH_BASE" "export PR_BODY=\"\$(poetry run python3 .github/workflows/pr_body_gen.py $BRANCH_CURRENT $BRANCH_BASE | tr '\n' ' ' | tr -d '\"')\""
+cmd_logger "Generate current PR Body merging $BRANCH_CURRENT into $BRANCH_BASE" "export PR_BODY=\"\$(poetry run python3 .github/workflows/pr_body_gen.py $BRANCH_CURRENT $BRANCH_BASE)\""
 
 # EXISTING PR: Update PR body
 if [ -n "$PR_EXISTS" ]; then
