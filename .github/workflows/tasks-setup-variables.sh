@@ -56,37 +56,38 @@ fi
 # Announce start of script
 echo "Setting up variables for stage: $WORKFLOW_STAGE"
 
-# Export the WORKFLOW_STAGE variable
-cmd_logger "Export the WORKFLOW_STAGE variable" "export WORKFLOW_STAGE=$WORKFLOW_STAGE && echo \"WORKFLOW_STAGE=$WORKFLOW_STAGE\" >> $GITHUB_ENV"
-
-# Export the GH_TOKEN variable
-cmd_logger "Export the GH_TOKEN variable" "export GH_TOKEN=\$GH_TOKEN && echo "GH_TOKEN=$GH_TOKEN" >> $GITHUB_ENV"
-
 # Setup the BRANCH_BASE variable
-cmd_logger "Setup the BRANCH_BASE variable" "export BRANCH_BASE=$WORKFLOW_STAGE && echo \"BRANCH_BASE=$WORKFLOW_STAGE\" >> $GITHUB_ENV"
+cmd_logger "Setup the BRANCH_BASE variable" "export BRANCH_BASE=$WORKFLOW_STAGE"
+echo "BRANCH_BASE=$WORKFLOW_STAGE" >> $GITHUB_ENV
 
 # Capitalise first char of $BRANCH_BASE and export as $WORKFLOW_STAGE_CAP
-cmd_logger "Capitalise first char of $BRANCH_BASE" "export WORKFLOW_STAGE_CAP=$(echo "$BRANCH_BASE" | awk '{print toupper(substr($0, 1, 1)) tolower(substr($0, 2))}') && echo \"WORKFLOW_STAGE_CAP=$WORKFLOW_STAGE_CAP\" >> $GITHUB_ENV"
+cmd_logger "Capitalise first char of $BRANCH_BASE" "export WORKFLOW_STAGE_CAP=$(echo "$BRANCH_BASE" | awk '{print toupper(substr($0, 1, 1)) tolower(substr($0, 2))}')"
+echo "WORKFLOW_STAGE_CAP=$WORKFLOW_STAGE_CAP" >> $GITHUB_ENV
 
 # Setup current branch name variable
-cmd_logger "Setup current branch name variable" "export BRANCH_CURRENT=\"$(git rev-parse --abbrev-ref HEAD)\" && echo \"BRANCH_CURRENT=$BRANCH_CURRENT\" >> $GITHUB_ENV"
+cmd_logger "Setup current branch name variable" "export BRANCH_CURRENT=\"$(git rev-parse --abbrev-ref HEAD)\""
+echo "BRANCH_CURRENT=$BRANCH_CURRENT" >> $GITHUB_ENV
 
 # Check if the current branch has a PR associated with it
-cmd_logger "Check if the current branch has a PR associated with it" "export PR_EXISTS=$(gh pr list --json number --jq '.[0].number' || echo "") && echo \"PR_EXISTS=$PR_EXISTS\" >> $GITHUB_ENV"
+cmd_logger "Check if the current branch has a PR associated with it" "export PR_EXISTS=$(gh pr list --json number --jq '.[0].number' || echo "")"
+echo "PR_EXISTS=$PR_EXISTS" >> $GITHUB_ENV
 
 # If a PR exists, get the PR number
 if [ -n "$PR_EXISTS" ]; then
-    cmd_logger "Getting the PR number" "export PR_NUMBER=$(gh pr list --json number --jq '.[0].number') && echo \"PR_NUMBER=$PR_NUMBER\" >> $GITHUB_ENV"
+    cmd_logger "Getting the PR number" "export PR_NUMBER=$(gh pr list --json number --jq '.[0].number')"
+    echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
 fi
 
 # If a PR exists, get the PR URL
 if [ -n "$PR_EXISTS" ]; then
-    cmd_logger "Getting the PR URL" "export PR_URL=$(gh pr view $PR_NUMBER --json url --jq '.url') && echo \"PR_URL=$PR_URL\" >> $GITHUB_ENV"
+    cmd_logger "Getting the PR URL" "export PR_URL=$(gh pr view $PR_NUMBER --json url --jq '.url')"
+    echo "PR_URL=$PR_URL" >> $GITHUB_ENV
 fi
 
 # If a PR exists, get the PR title and remove problematic characters
 if [ -n "$PR_EXISTS" ]; then
-    cmd_logger "Getting the PR title" "export PR_TITLE=\"\$(gh pr view $PR_NUMBER --json title --jq '.title')\" && echo \"PR_TITLE=$PR_TITLE\" >> $GITHUB_ENV"
+    cmd_logger "Getting the PR title" "export PR_TITLE=\"\$(gh pr view $PR_NUMBER --json title --jq '.title')\""
+    echo "PR_TITLE=$PR_TITLE" >> $GITHUB_ENV
 fi
 
 # Log PR details if a PR exists
