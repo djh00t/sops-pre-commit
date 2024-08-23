@@ -37,6 +37,7 @@ cmd_logger() {
             echo "$msg_fail ❌"
         else
             echo "$name failed with status $status ❌"
+            exit $status
         fi
     fi
 
