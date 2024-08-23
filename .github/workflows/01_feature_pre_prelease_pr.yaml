@@ -20,17 +20,19 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up environment & git config
+      - name: Setup Environment Variables
         run: |
           # Run the setup-variables script
           .github/workflows/tasks-setup-variables.sh
+        env:
+          WORKFLOW_STAGE: 'pre-release'
+
+      - name: Setup Git Config
+        run: |
           # Run the setup-git script
           .github/workflows/tasks-setup-git.sh
         env:
           WORKFLOW_STAGE: 'pre-release'
-
-
-
 
       - name: Setup Python
         uses: actions/setup-python@v5.1.0
