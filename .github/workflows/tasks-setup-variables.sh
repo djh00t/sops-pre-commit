@@ -57,6 +57,9 @@ echo "Setting up variables for stage: $WORKFLOW_STAGE"
 # Export the WORKFLOW_STAGE variable
 cmd_logger "Export the WORKFLOW_STAGE variable" "export WORKFLOW_STAGE=$WORKFLOW_STAGE"
 
+# Export the GH_TOKEN variable
+cmd_logger "Export the GH_TOKEN variable" "export GH_TOKEN=$GH_TOKEN"
+
 # Setup the BRANCH_BASE variable
 cmd_logger "Setup the BRANCH_BASE variable" "export BRANCH_BASE=$WORKFLOW_STAGE"
 
@@ -64,7 +67,7 @@ cmd_logger "Setup the BRANCH_BASE variable" "export BRANCH_BASE=$WORKFLOW_STAGE"
 cmd_logger "Capitalise first char of $BRANCH_BASE" "export WORKFLOW_STAGE_CAP=$(echo "$BRANCH_BASE" | awk '{print toupper(substr($0, 1, 1)) tolower(substr($0, 2))}')"
 
 # Setup current branch name variable
-cmd_logger "Setup current branch name variable" "export BRANCH_CURRENT=$(git rev-parse --abbrev-ref HEAD)"
+cmd_logger "Setup current branch name variable" "export BRANCH_CURRENT=\"$(git rev-parse --abbrev-ref HEAD)\""
 
 # Check if the current branch has a PR associated with it
 cmd_logger "Check if the current branch has a PR associated with it" "export PR_EXISTS=$(gh pr list --json number --jq '.[0].number' || echo "")"
