@@ -60,7 +60,7 @@ echo "Setting up variables for stage: $WORKFLOW_STAGE"
 cmd_logger "Export the WORKFLOW_STAGE variable" "export WORKFLOW_STAGE=$WORKFLOW_STAGE"
 
 # Export the GH_TOKEN variable
-cmd_logger "Export the GH_TOKEN variable" "export GH_TOKEN=$GH_TOKEN"
+cmd_logger "Export the GH_TOKEN variable" "export GH_TOKEN=\$GH_TOKEN"
 
 # Setup the BRANCH_BASE variable
 cmd_logger "Setup the BRANCH_BASE variable" "export BRANCH_BASE=$WORKFLOW_STAGE"
