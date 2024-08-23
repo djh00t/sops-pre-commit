@@ -45,20 +45,20 @@ cmd_logger() {
     return $status
 }
 
-# Make sure ${{ WORKFLOW_STAGE }} is set and isn't blank
-if [ -z "${{ WORKFLOW_STAGE }}" ]; then
+# Make sure $WORKFLOW_STAGE is set and isn't blank
+if [ -z "$WORKFLOW_STAGE" ]; then
     echo "Stage input variable is not set. Exiting..."
     exit 1
 fi
 
 # Announce start of script
-echo "Setting up variables for stage: ${{ WORKFLOW_STAGE }}"
+echo "Setting up variables for stage: $WORKFLOW_STAGE"
 
 # Setup the BRANCH_BASE variable
-cmd_logger "Setup the BRANCH_BASE variable" "export BRANCH_BASE=${{ WORKFLOW_STAGE }}"
+cmd_logger "Setup the BRANCH_BASE variable" "export BRANCH_BASE=$WORKFLOW_STAGE"
 
-# Capitalise first char of $BRANCH_BASE and export as $STAGE_CAP
-cmd_logger "Capitalise first char of $BRANCH_BASE" "export STAGE_CAP=$(echo "$BRANCH_BASE" | awk '{print toupper(substr($0, 1, 1)) tolower(substr($0, 2))}')"
+# Capitalise first char of $BRANCH_BASE and export as $WORKFLOW_STAGE_CAP
+cmd_logger "Capitalise first char of $BRANCH_BASE" "export WORKFLOW_STAGE_CAP=$(echo "$BRANCH_BASE" | awk '{print toupper(substr($0, 1, 1)) tolower(substr($0, 2))}')"
 
 # Setup current branch name variable
 cmd_logger "Setup current branch name variable" "export BRANCH_CURRENT=$(git rev-parse --abbrev-ref HEAD)"
