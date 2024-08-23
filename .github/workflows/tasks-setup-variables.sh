@@ -47,12 +47,15 @@ cmd_logger() {
 
 # Make sure $WORKFLOW_STAGE is set and isn't blank
 if [ -z "$WORKFLOW_STAGE" ]; then
-    echo "Stage input variable is not set. Exiting..."
+    echo "WORKFLOW_STAGE variable is not set. Exiting..."
     exit 1
 fi
 
 # Announce start of script
 echo "Setting up variables for stage: $WORKFLOW_STAGE"
+
+# Export the WORKFLOW_STAGE variable
+cmd_logger "Export the WORKFLOW_STAGE variable" "export WORKFLOW_STAGE=$WORKFLOW_STAGE"
 
 # Setup the BRANCH_BASE variable
 cmd_logger "Setup the BRANCH_BASE variable" "export BRANCH_BASE=$WORKFLOW_STAGE"
