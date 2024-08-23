@@ -228,10 +228,20 @@ def get_pr_number() -> str:
 try:
     SUMMARY = generate_summary()
 except subprocess.CalledProcessError as e:
-    print(f"Error generating summary: {e}")
     SUMMARY = "Summary generation failed."
-motivation_context = generate_motivation_context()
-pr_number = get_pr_number()
+    print(f"Error generating summary: {e}", file=sys.stderr)
+
+try:
+    MOTIVATION_CONTEXT = generate_motivation_context()
+except subprocess.CalledProcessError as e:
+    MOTIVATION_CONTEXT = "Motivation context generation failed."
+    print(f"Failed to generate PR context: {e}", file=sys.stderr)
+
+try:
+    PR_NUMBER = get_pr_number()
+except subprocess.CalledProcessError as e:
+    PR_NUMBER = "Unknown"
+    print(f"Failed to get PR number: {e}", file=sys.stderr)
 
 # Render the pull request body using the template and the collected data
 pr_body = template.render(
@@ -239,8 +249,8 @@ pr_body = template.render(
     branch_name=source_branch,
     dest_branch=dest_branch,
     actor=os.getenv("GITHUB_ACTOR"),
-    pr_number=pr_number,
-    motivation_context=motivation_context,
+    pr_number=PR_NUMBER,
+    motivation_context=MOTIVATION_CONTEXT,
     types=types,
 )
 
