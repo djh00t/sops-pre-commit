@@ -26,6 +26,8 @@ jobs:
         run: |
           .github/workflows/tasks-setup-variables.sh
           .github/workflows/tasks-setup-git.sh
+        with:
+          stage: ${{ inputs.stage }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
