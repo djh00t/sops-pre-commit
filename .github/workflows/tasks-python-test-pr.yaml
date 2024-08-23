@@ -41,11 +41,11 @@ jobs:
     - name: Install Poetry
       uses: abatilo/actions-poetry@v2
 
-    - name: Setup a local virtual environment (if no poetry.toml file)
-      run: |
-        poetry config virtualenvs.create true --local
-        poetry config virtualenvs.in-project true --local
-        poetry config virtualenvs.path ./.venv
+#     - name: Setup a local virtual environment (if no poetry.toml file)
+#       run: |
+#         poetry config virtualenvs.create true --local
+#         poetry config virtualenvs.in-project true --local
+#         poetry config virtualenvs.path ./.venv
 
     - name: Load virtual environment cache
       uses: actions/cache@v4
