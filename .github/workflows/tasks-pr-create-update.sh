@@ -55,7 +55,7 @@ cmd_logger "Generate current PR Body merging $BRANCH_CURRENT into $BRANCH_BASE" 
 if [ -n "$PR_EXISTS" ]; then
     echo "PR Exists: $PR_EXISTS"
     # Update PR with current body
-    poetry run gh pr edit $PR_URL --title "$PR_TITLE" --body "$PR_BODY"
+    gh pr edit $PR_URL --title "$PR_TITLE" --body "$PR_BODY"
 fi
 
 # NEW PR: Generate PR Title & create new PR
@@ -65,5 +65,8 @@ if [ -z "$PR_EXISTS" ]; then
     cmd_logger "Generating PR Title" "export PR_TITLE=$(pr-title-generate)"
 
     # Create PR,  if it ends successfully otherwise echo an error.
-    cmd_logger "Creating PR" "PR_URL=$(poetry run gh pr create --title \"$PR_TITLE\" --body \"$PR_BODY\" --base $BRANCH_BASE --head $BRANCH_CURRENT) || echo \"Failed to create PR\"" "echo \"PR Created: $PR_URL\""
+    cmd_logger "Creating PR" "PR_URL=$(gh pr create --title \"$PR_TITLE\" --body \"$PR_BODY\" --base $BRANCH_BASE --head $BRANCH_CURRENT) || echo \"Failed to create PR\"" "echo \"PR Created: $PR_URL\""
 fi
+
+# Announce end of script
+echo "PR Create/Update complete"
