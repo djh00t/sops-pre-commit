@@ -63,6 +63,5 @@ jobs:
         shell: /usr/bin/bash -e {0}
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_TITLE: ${{ env.PR_TITLE }}
+          WORKFLOW_STAGE: 'pre-release'
