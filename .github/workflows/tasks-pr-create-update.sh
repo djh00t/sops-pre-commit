@@ -49,8 +49,7 @@ cmd_logger() {
 # Announce start of script
 echo "Starting PR Create/Update"
 
-# Activate virtual enviro
-nment
+# Activate virtual environment
 source .venv/bin/activate
 
 # Generate current $PR_BODY and export it as an environment variable

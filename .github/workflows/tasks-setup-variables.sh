@@ -61,7 +61,7 @@ cmd_logger "Setup the BRANCH_BASE variable" "echo \"BRANCH_BASE=$WORKFLOW_STAGE\
 
 
 # Capitalise first char of $BRANCH_BASE and export as $WORKFLOW_STAGE_CAP
-cmd_logger "Capitalise first char of $BRANCH_BASE" "export WORKFLOW_STAGE_CAP=$(echo "$BRANCH_BASE" | awk '{print toupper(substr($0, 1, 1)) tolower(substr($0, 2))}')"
+cmd_logger "Capitalise first char of $BRANCH_BASE" "export WORKFLOW_STAGE_CAP=$(echo $WORKFLOW_STAGE | awk '{print toupper(substr($0, 1, 1)) tolower(substr($0, 2))}')"
 echo "WORKFLOW_STAGE_CAP=$WORKFLOW_STAGE_CAP" >> $GITHUB_ENV
 
 # Setup current branch name variable
