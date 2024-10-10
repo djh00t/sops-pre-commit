@@ -42,9 +42,19 @@ class SecretsManager:
         self.key_age_private = self._read_key_file(
             AGE_PRIVATE_KEY_PATH, line_number=1
         )
+        
+        # Check if keys exist, and if not, enable WARN ONLY mode
+        if not self.key_age_public:
+            self.debug(1, f"Public key not found: {AGE_PUBLIC_KEY_PATH}")
+        if not self.key_age_private:
+            self.debug(1, f"Private key not found: {AGE_PRIVATE_KEY_PATH}")
+        
         self.warn_only_mode = not (
             self.key_age_public and self.key_age_private
         )
+        
+        if self.warn_only_mode:
+            self.debug(1, "WARN ONLY MODE: Age keys not found. Encryption and decryption actions are disabled.")
 
     def _read_key_file(
         self, file_path: str, line_number: Optional[int] = None
