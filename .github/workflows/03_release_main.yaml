@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - release
-  workflow_dispatch: {}
+  workflow_dispatch:
 
 jobs:
   release:
@@ -119,9 +119,32 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_TITLE: ${{ env.PR_TITLE }}
 
-      - name: Set Release Version
+      - name: Check and Set Release Version
         run: |
-          RELEASE_VERSION=$(poetry run python3 -c "import toml; print(toml.load('pyproject.toml')['tool']['poetry']['version'])")
+          # Get the latest release version from GitHub
+          LATEST_GITHUB_VERSION=$(gh release list --limit 1 | awk '{print $1}' | sed 's/^v//')
+
+          # Get the version from pyproject.toml
+          PYPROJECT_VERSION=$(poetry run python3 -c "import toml; print(toml.load('pyproject.toml')['tool']['poetry']['version'])")
+
+          # Compare versions and update if necessary
+          if [ -z "$LATEST_GITHUB_VERSION" ] || [ "$(printf '%s\n' "$LATEST_GITHUB_VERSION" "$PYPROJECT_VERSION" | sort -V | tail -n1)" = "$PYPROJECT_VERSION" ]; then
+            RELEASE_VERSION=$PYPROJECT_VERSION
+          else
+            # Increment patch version
+            RELEASE_VERSION=$(echo $LATEST_GITHUB_VERSION | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')
+
+            # Update pyproject.toml
+            sed -i "s/version = \"$PYPROJECT_VERSION\"/version = \"$RELEASE_VERSION\"/" pyproject.toml
+
+            # Commit and push the change
+            git config --local user.email "github-actions[bot]@users.noreply.github.com"
+            git config --local user.name "github-actions[bot]"
+            git add pyproject.toml
+            git commit -m "chore(pyproject.toml): Update release version to $RELEASE_VERSION"
+            git push origin release
+          fi
+
           echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
 
       - name: Generate release notes and artifacts
