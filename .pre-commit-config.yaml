@@ -1,132 +1,62 @@
-# vim: ff=unix ts=2 sw=2 ai expandtab
----
-# .pre-commit-config.yaml for development environment
 fail_fast: true
-# Define the pre-commit hooks
 repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
-    hooks:
-      - id: check-added-large-files
-      - id: check-case-conflict
-      - id: check-ast
-      - id: check-json
-      - id: check-toml
-      - id: check-merge-conflict
-      - id: check-docstring-first
-      - id: check-executables-have-shebangs
-      - id: check-yaml
-      - id: end-of-file-fixer
-        exclude: |
-          (?x)^(
-            .*.terraform/.*|
-            tmpl\/.*.sops\.ya?ml
-            )$
-      - id: mixed-line-ending
-      - id: trailing-whitespace
-        args:
-          - --markdown-linebreak-ext=md
-      # This hook is disabled because we deal with this in our
-      # sops-pre-commit hook and also in black
-      # - id: detect-private-key
-
-  - repo: https://github.com/hhatto/autopep8
-    rev: v2.3.1
-    hooks:
-      - id: autopep8
-        args:
-          - --aggressive
-          - --aggressive
-          - --aggressive
-          - --in-place
-          - --list-fixes
-          - --max-line-length=79
-          - --pep8-passes=5
-
-  # Black configuration is in pyproject.toml
-  - repo: https://github.com/psf/black
-    rev: 24.4.2
-    hooks:
-      - id: black
-        language_version: python3
-        args: ['--config=pyproject.toml']
-
-  - repo: https://github.com/PyCQA/flake8
-    rev: 7.1.0
-    hooks:
-      - id: flake8
-        args: ['--config=pyproject.toml']
-        #additional_dependencies: [
-          # Tool for encouraging best coding practices and helping ensure
-          # Python code is secure.
-        #  dlint,
-          # Check the order of import statements and the __all__ list.
-          # flake8-alphabetize,
-          # Wrapper around bandit - https://github.com/PyCQA/bandit
-          # flake8-bandit,
-          # Finding likely bugs and design problems in your program.
-        #  flake8-bugbear,
-          # Checks if everything has a docstring.
-        #  flake8-docstring-checker,
-          # flake8-docstrings-complete, # Linter that checks docstrings of
-          # functions, methods and classes.
-          # flake8-fastapi,             # Checks FastAPI code against
-          # opinionated style rules.
-          # flake8-github,              # Generates GitHub annotation for PR's.
-          # flake8-requirements,        # Package requirements checker.
-          # flake8-spellcheck,          # Spellcheck variables, classnames,
-          # comments, docstrings etc.
-          # flake8-sphinx-links,        # Check docstrings for double backticked
-          # strings which should be links to the Python documentation.
-          # flake8-unused-arguments,    # Warn against unused arguments in
-          # functions.
-          # pep8-naming,                # Check the PEP-8 naming conventions.
-          # pydoclint,                  # A Python docstring linter that checks
-          # arguments, returns, yields, and raises sections.
-        #]  # Additional flake8 plugins
-
-#   - repo: https://github.com/PyCQA/isort
-#     rev: 5.13.2  # Use the latest stable release
-#     hooks:
-#       - id: isort
-#         name: isort (python)  # Optional, customize hook name
-#         args: ['--profile', 'black']  # Example of passing arguments to isort
-#         language_version: python3  # Specify the Python version
-
-  - repo: https://github.com/Lucas-C/pre-commit-hooks
-    rev: v1.3.1
-    hooks:
-      - id: forbid-crlf
-      - id: remove-crlf
-      - id: forbid-tabs
-      - id: remove-tabs
-
-  - repo: https://github.com/gruntwork-io/pre-commit
-    rev: v0.1.23
-    hooks:
-      - id: terraform-fmt
-      - id: terraform-validate
-      - id: tflint
-
-  - repo: https://github.com/pylint-dev/pylint
-    rev: v3.2.5  # Use the latest stable release
-    hooks:
-      - id: pylint
-      # Example of disabling specific pylint categories
-      # args: ["--disable=R,C"]
-
-#   - repo: https://github.com/djh00t/sops-pre-commit
-#     rev: v0.0.2f
-#     hooks:
-# #      - id: kubernetes-secret
-# #        exclude: (tmpl\/.*.sops\.ya?ml|knative\-operator\.ya?ml)
-#       - id: aws-access-key-id
-#       - id: aws-secret-access-key
-#       - id: rsa-private-key
-#       - id: ssh-private-key
-#       - id: github-access-token
-#       - id: generic-api-key
-#       - id: gcp-api-key
-#       - id: jwt
-#       - id: slack-webhook-url
-#       - id: google-oauth-client-secret
+- hooks:
+  - id: check-added-large-files
+  - id: check-case-conflict
+  - id: check-ast
+  - id: check-json
+  - id: check-toml
+  - id: check-merge-conflict
+  - id: check-docstring-first
+  - id: check-executables-have-shebangs
+  - id: check-yaml
+  - exclude: "(?x)^(\n  .*.terraform/.*|\n  tmpl\\/.*.sops\\.ya?ml\n  )$\n"
+    id: end-of-file-fixer
+  - id: mixed-line-ending
+  - args:
+    - --markdown-linebreak-ext=md
+    id: trailing-whitespace
+  repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.6.0
+- hooks:
+  - args:
+    - --aggressive
+    - --aggressive
+    - --aggressive
+    - --in-place
+    - --list-fixes
+    - --max-line-length=79
+    - --pep8-passes=5
+    id: autopep8
+  repo: https://github.com/hhatto/autopep8
+  rev: v2.3.1
+- hooks:
+  - args:
+    - --config=pyproject.toml
+    id: black
+    language_version: python3
+  repo: https://github.com/psf/black
+  rev: 24.4.2
+- hooks:
+  - args:
+    - --config=pyproject.toml
+    id: flake8
+  repo: https://github.com/PyCQA/flake8
+  rev: 7.1.0
+- hooks:
+  - id: forbid-crlf
+  - id: remove-crlf
+  - id: forbid-tabs
+  - id: remove-tabs
+  repo: https://github.com/Lucas-C/pre-commit-hooks
+  rev: v1.3.1
+- hooks:
+  - id: terraform-fmt
+  - id: terraform-validate
+  - id: tflint
+  repo: https://github.com/gruntwork-io/pre-commit
+  rev: v0.1.23
+- hooks:
+  - id: pylint
+  repo: https://github.com/pylint-dev/pylint
+  rev: v3.2.5
