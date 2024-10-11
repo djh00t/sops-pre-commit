@@ -93,7 +93,7 @@ jobs:
       - name: Commit changes
         run: |
           git add .
-          git commit -m "chore(release): ${{ env.RELEASE_VERSION }} [skip ci]" || echo "No changes to commit"
+          git commit -m "chore(release): Update version to ${{ env.RELEASE_VERSION }} [skip ci]" || echo "No changes to commit"
           git push origin release
 
       # Check if PR exists, if it doesn't create one with a generated title using
