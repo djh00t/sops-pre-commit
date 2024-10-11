@@ -122,7 +122,7 @@ sdist: clean
 # Run tests
 test:
 	@echo "Running unit tests..."
-	@poetry run pytest
+	@poetry run pytest -vvv
 
 # Uninstall the local package
 uninstall:
