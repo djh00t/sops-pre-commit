@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# flake8: noqa: E501
 """
 This module provides functionality to check for unencrypted secrets in
 files, encrypt them using SOPS (Secrets OPerationS), and handle
@@ -9,18 +10,24 @@ can handle Kubernetes secrets specifically.
 import argparse
 import os
 import re
+import shutil
 import socket
 import subprocess
 import sys
 from datetime import datetime
 from typing import List, Optional
 
-from ruamel.yaml import YAML, YAMLError
+from ruamel.yaml import YAML, YAMLError  # pylint: disable=import-error
 
 # Constants
 ROOT_DIR = subprocess.getoutput("git rev-parse --show-toplevel")
 AGE_PUBLIC_KEY_PATH = os.path.join(ROOT_DIR, ".age.pub")
-AGE_PRIVATE_KEY_PATH = os.path.join(ROOT_DIR, "age.agekey")
+AGE_PRIVATE_KEY_PATH = os.path.join(
+    os.path.expanduser("~"), ".config", "sops", "age", "keys.txt"
+)
+AGE_PRIVATE_KEY_PATH_ALT = os.path.join(
+    os.path.expanduser("~"), ".config", "sops", "age", "age.key"
+)
 
 # Debug levels
 DEBUG_LEVELS = {
@@ -42,9 +49,7 @@ class SecretsManager:
         self.key_age_private = self._read_key_file(
             AGE_PRIVATE_KEY_PATH, line_number=1
         )
-        self.warn_only_mode = not (
-            self.key_age_public and self.key_age_private
-        )
+        self.warn_only_mode = not (self.key_age_public and self.key_age_private)
 
     def _read_key_file(
         self, file_path: str, line_number: Optional[int] = None
@@ -172,7 +177,8 @@ class SecretsManager:
         return bool(encrypted_file_regex.search(content))
 
     def check_kubernetes_secret_file(self, filename: str) -> bool:
-        """Checks if a Kubernetes secret file is encrypted and encrypts it if
+        """
+        Checks if a Kubernetes secret file is encrypted and encrypts it if
         not.
 
         Args:
@@ -361,8 +367,10 @@ def check_slack_webhook_url(content: str) -> re.Match | None:
         A regex match object if a Slack webhook URL is found, None otherwise.
     """
     return re.search(
-        r"https://hooks.slack.com/services/T[A-Z0-9]{8}/B[A-Z0-9]{8}/"
-        r"[a-zA-Z0-9]{24}",
+        (
+            r"https://hooks.slack.com/services/T[A-Z0-9]{8}/B[A-Z0-9]{8}/"
+            r"[a-zA-Z0-9]{24}"
+        ),
         content,
     )
 
@@ -408,6 +416,166 @@ def is_excluded(filename: str, exclude_patterns: List[str]) -> bool:
     return any(re.search(pattern, filename) for pattern in exclude_patterns)
 
 
+def check_age_installed() -> None:
+    """Checks if age is installed and exits if not."""
+    if not shutil.which("age"):
+        print(
+            "ERROR: age is not installed. Please install it from "
+            "https://github.com/FiloSottile/age and generate keys before "
+            "trying again."
+        )
+        sys.exit(1)
+
+
+def check_sops_yaml() -> None:
+    """
+    Checks if .sops.yaml exists in the current directory or any directory above
+    up to the repository root. If it does not exist, creates a default
+    .sops.yaml in the repository root.
+    """
+    current_dir = os.getcwd()
+    root_dir = subprocess.getoutput("git rev-parse --show-toplevel")
+    sops_yaml_path = None
+
+    while current_dir != root_dir:
+        potential_path = os.path.join(current_dir, ".sops.yaml")
+        if os.path.isfile(potential_path):
+            sops_yaml_path = potential_path
+            break
+        current_dir = os.path.dirname(current_dir)
+
+    if not sops_yaml_path:
+        sops_yaml_path = os.path.join(root_dir, ".sops.yaml")
+        with open(sops_yaml_path, "w", encoding="utf-8") as file:
+            file.write(
+                """###
+### EXAMPLE .sops.yaml FILE
+###
+# This file is an example of how to configure sops to encrypt and decrypt
+# Kubernetes secrets. This file should be placed in the root of your
+# repository. It will be used by sops to determine how to encrypt and decrypt
+
+---
+creation_rules:
+  # Select all files ending in .sops.yaml but not files whose entire name is
+  # .sops.yaml also look for files with secrets in the name and ending in
+  # .yaml or .json (e.g. secrets.yaml, secrets.json, my-secrets.yaml,
+  # encrypted.sops.json, etc.) and apply the following rules to them.
+  - path_regex: ^(.*/)?.*(secrets|.*\\.sops)\\.(ya?ml|json)$
+    ##
+    ## NOTE: use of encrypted_regex and unencrypted_regex are mutually
+    ## exclusive. You can only use one or the other.
+    ##
+    ## encrypted_regex
+    # Select only files containing data and stringData fields
+    # encrypted_regex: ^(data|stringData)$
+    # Select all fields (not recommended!!!)
+    # encrypted_regex: .*
+    ## unencrypted_regex (recommended method)
+    # Do not encrypt the following header fields:
+    unencrypted_regex: ^(apiVersion|kind|metadata|type)$
+    ## AGE Public Key (recipient)
+    age: <PUBLIC_KEY>
+"""
+            )
+        print(f"INFO: Created default .sops.yaml at {sops_yaml_path}")
+
+
+def check_age_public_key() -> None:
+    """
+    Checks if .age.pub exists in the .sops.yaml file, the
+    SOPS_AGE_RECIPIENTS environment variable, or the repository root.
+    If it does not exist, prompts the user to generate one if needed for manual
+    key management.
+    """
+    root_dir = subprocess.getoutput("git rev-parse --show-toplevel")
+    age_pub_path = os.path.join(root_dir, ".age.pub")
+    sops_yaml_path = os.path.join(root_dir, ".sops.yaml")
+    age_public_key = None
+
+    # Check if .age.pub exists in the repository root
+    if os.path.isfile(age_pub_path):
+        with open(age_pub_path, "r", encoding="utf-8") as file:
+            age_public_key = file.read().strip()
+
+    # Check if age public key is in the .sops.yaml file
+    if not age_public_key and os.path.isfile(sops_yaml_path):
+        with open(sops_yaml_path, "r", encoding="utf-8") as file:
+            sops_yaml_content = file.read()
+            match = re.search(r"age:\s*<PUBLIC_KEY>", sops_yaml_content)
+            if match:
+                age_public_key = match.group(0)
+
+    # Check if age public key is in the SOPS_AGE_RECIPIENTS environment variable
+    if not age_public_key:
+        age_public_key = os.environ.get("SOPS_AGE_RECIPIENTS")
+
+    if not age_public_key:
+        print(
+            "ERROR: .age.pub not found in the repository root, .sops.yaml, or "
+            "SOPS_AGE_RECIPIENTS environment variable."
+        )
+        print(
+            "Please generate an age public key if needed for manual key "
+            "management."
+        )
+        sys.exit(1)
+
+
+def check_age_private_key() -> None:
+    """
+    Checks if the age private key exists in the default locations or is
+    specified via the SOPS_AGE_KEY_FILE environment variable. If it does not
+    exist, prompts the user to generate one and save it in an appropriate
+    location.
+    """
+    age_private_key = None
+
+    # Check if the private key exists in the default locations
+    if os.path.isfile(AGE_PRIVATE_KEY_PATH):
+        age_private_key = AGE_PRIVATE_KEY_PATH
+    elif os.path.isfile(AGE_PRIVATE_KEY_PATH_ALT):
+        age_private_key = AGE_PRIVATE_KEY_PATH_ALT
+
+    # Check if the private key is specified via the SOPS_AGE_KEY_FILE
+    # environment variable
+    if not age_private_key:
+        age_private_key = os.environ.get("SOPS_AGE_KEY_FILE")
+
+    if not age_private_key or not os.path.isfile(age_private_key):
+        print(
+            "ERROR: .age.agekey not found in the default locations or "
+            "specified via the SOPS_AGE_KEY_FILE environment variable."
+        )
+        print(
+            "Please generate an age private key and save it in "
+            "$HOME/.config/sops/age/keys.txt, or set the SOPS_AGE_KEY_FILE "
+            "environment variable to the location of the key file."
+        )
+        sys.exit(1)
+
+    # Check if required files are present in the repository root.
+    required_files = [".sops.yaml", ".age.pub", ".age.agekey"]
+    missing_files = [f for f in required_files if not os.path.isfile(f)]
+
+    if missing_files:
+        print(
+            "ERROR: The following required files are missing: "
+            f"{', '.join(missing_files)}"
+        )
+        sys.exit(1)
+
+
+def check_sops_installed() -> None:
+    """Checks if sops is installed and exits if not."""
+    if not shutil.which("sops"):
+        print(
+            "ERROR: sops is not installed. Please install it from "
+            "https://github.com/getsops/sops"
+        )
+        sys.exit(1)
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     """Main function to manage secrets encryption and decryption using SOPS.
 
@@ -440,6 +608,12 @@ def main(argv: Optional[List[str]] = None) -> int:
         help="Action to perform on the files.",
     )
     args = parser.parse_args(argv)
+
+    check_age_installed()
+    check_sops_yaml()
+    check_age_public_key()
+    check_age_private_key()
+    check_sops_installed()
 
     secrets_manager = SecretsManager()
 
@@ -504,4 +678,4 @@ def main(argv: Optional[List[str]] = None) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
+    sys.exit(main())
