@@ -1,8 +1,8 @@
-// .releaserc.pre-release.js
+// .releaserc.rc.js
 module.exports = {
   branches: [
     { name: "main" },
-    { name: "pre-release", prerelease: true }
+    { name: "rc", prerelease: true }
   ],
   repositoryUrl: "https://github.com/djh00t/sops-pre-commit.git",
   plugins: [
@@ -22,7 +22,7 @@ module.exports = {
       {
         assets: ["README.md", "pyproject.toml", "CHANGELOG.md"],
         message:
-          "chore(pre-release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}",
+          "ci(release-candidate): Update version to ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}",
         pushRepo: "https://github.com/djh00t/sops-pre-commit.git",
         push: false,
       },
