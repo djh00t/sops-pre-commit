@@ -24,6 +24,14 @@ module.exports = {
         push: false,
       },
     ],
+    [
+      "@semantic-release/exec",
+      {
+        publishCmd: `
+          TWINE_USER_AGENT="$PYPI_USER_AGENT" poetry publish --build
+        `,
+      },
+    ],
   ],
   preset: "conventionalcommits",
   releaseRules: [
