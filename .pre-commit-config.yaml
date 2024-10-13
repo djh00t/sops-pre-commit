@@ -112,6 +112,7 @@ repos:
     rev: v3.2.5  # Use the latest stable release
     hooks:
       - id: pylint
+        additional_dependencies: ['jinja2']
       # Example of disabling specific pylint categories
       # args: ["--disable=R,C"]
 
