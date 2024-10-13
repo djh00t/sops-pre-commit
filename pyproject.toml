@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sops-pre-commit"
-version = "1.0.0-rc2"
+version = "0.0.4"
 description = "Check for unencrypted secrets and encrypt them using sops and age/gpg. Forked from https://github.com/onedr0p/sops-pre-commit"
 authors = ["David Hooton <klingon_tools+david@hooton.org>"]
 license = "MIT"
