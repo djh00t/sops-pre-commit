@@ -19,7 +19,7 @@ module.exports = {
       {
         assets: ["README.md", "pyproject.toml", "CHANGELOG.md"],
         message:
-          "chore(pre-release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}",
+          "ci(release): Update version to ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}",
         pushRepo: "https://github.com/djh00t/sops-pre-commit.git",
         push: false,
       },
