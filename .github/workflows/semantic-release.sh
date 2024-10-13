@@ -1,14 +1,16 @@
 #!/bin/bash
+# Make sure packages are installed
+npm install
 
 # Determine if this is a pre-release or a release
 if [[ "$1" == "pre-release" ]]; then
     RELEASE_TYPE="pre-release"
     RELEASE_BRANCH_PREFIX="rc-v"
-    RELEASERC_FILE=".releaserc-pre-release.js"
+    RELEASERC_FILE=$(pwd)/".releaserc.pre-release.js"
 else
     RELEASE_TYPE="release"
     RELEASE_BRANCH_PREFIX="v"
-    RELEASERC_FILE=".releaserc-release.js"
+    RELEASERC_FILE=$(pwd)/".releaserc.release.js"
 fi
 
 # Extract the new version from package.json

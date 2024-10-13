@@ -1,4 +1,4 @@
-// .releaserc.rc.js
+// .releaserc.pre-release.js
 module.exports = {
   branches: [
     { name: "main" },
