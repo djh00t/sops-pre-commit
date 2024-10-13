@@ -1,6 +1,8 @@
 fail_fast: true
 repos:
-- hooks:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.6.0
+  hooks:
   - id: check-added-large-files
   - id: check-case-conflict
   - id: check-ast
@@ -16,9 +18,9 @@ repos:
   - args:
     - --markdown-linebreak-ext=md
     id: trailing-whitespace
-  repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.6.0
-- hooks:
+- repo: https://github.com/hhatto/autopep8
+  rev: v2.3.1
+  hooks:
   - args:
     - --aggressive
     - --aggressive
@@ -28,35 +30,33 @@ repos:
     - --max-line-length=79
     - --pep8-passes=5
     id: autopep8
-  repo: https://github.com/hhatto/autopep8
-  rev: v2.3.1
-- hooks:
+- repo: https://github.com/psf/black
+  rev: 24.4.2
+  hooks:
   - args:
     - --config=pyproject.toml
     id: black
     language_version: python3
-  repo: https://github.com/psf/black
-  rev: 24.4.2
-- hooks:
+- repo: https://github.com/PyCQA/flake8
+  rev: 7.1.0
+  hooks:
   - args:
     - --config=pyproject.toml
     id: flake8
-  repo: https://github.com/PyCQA/flake8
-  rev: 7.1.0
-- hooks:
+- repo: https://github.com/Lucas-C/pre-commit-hooks
+  rev: v1.3.1
+  hooks:
   - id: forbid-crlf
   - id: remove-crlf
   - id: forbid-tabs
   - id: remove-tabs
-  repo: https://github.com/Lucas-C/pre-commit-hooks
-  rev: v1.3.1
-- hooks:
+- repo: https://github.com/gruntwork-io/pre-commit
+  rev: v0.1.23
+  hooks:
   - id: terraform-fmt
   - id: terraform-validate
   - id: tflint
-  repo: https://github.com/gruntwork-io/pre-commit
-  rev: v0.1.23
-- hooks:
-  - id: pylint
-  repo: https://github.com/pylint-dev/pylint
+- repo: https://github.com/pylint-dev/pylint
   rev: v3.2.5
+  hooks:
+  - id: pylint
