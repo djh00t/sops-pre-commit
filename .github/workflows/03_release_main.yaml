@@ -128,4 +128,6 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        poetry run gh release create ${{ env.RELEASE_VERSION }} --title "Production Release ${{ env.RELEASE_VERSION }}" --notes "Release notes for version ${{ env.RELEASE_VERSION }}"
+        poetry run gh release create ${{ env.RELEASE_VERSION }} --title
+        "Production Release ${{ env.RELEASE_VERSION }}" --notes "Release notes
+        for version ${{ env.RELEASE_VERSION }}"

@@ -1,10 +1,10 @@
-// .releaserc.pre-release.js
 module.exports = {
   branches: [
-    { name: "main" },
-    { name: "pre-release", prerelease: true }
+    { name: "main" },  // Your main development branch
+    { name: "pre-release", prerelease: "rc" }  // Pre-release with "rc" identifier
   ],
   repositoryUrl: "https://github.com/djh00t/sops-pre-commit.git",
+  tagFormat: "${version}",  // Ensures proper SemVer format for the version
   plugins: [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
@@ -22,7 +22,7 @@ module.exports = {
       {
         assets: ["README.md", "pyproject.toml", "CHANGELOG.md"],
         message:
-          "chore(pre-release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}",
+          "chore(release-candidate): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}",
         pushRepo: "https://github.com/djh00t/sops-pre-commit.git",
         push: false,
       },
@@ -58,6 +58,28 @@ module.exports = {
     noteKeywords: ["BREAKING CHANGE", "BREAKING CHANGES"],
   },
   writerOpts: {
+    transform: (commit, context) => {
+      if (commit.committerDate) {
+        commit.committerDate = new Date(commit.committerDate).toISOString();
+      }
+
+      // Transform commit types to human-friendly descriptions
+      if (commit.type === 'feat') {
+        commit.type = 'Features';
+      } else if (commit.type === 'fix') {
+        commit.type = 'Bug Fixes';
+      } else if (commit.type === 'perf') {
+        commit.type = 'Performance Improvements';
+      } else if (commit.type === 'revert') {
+        commit.type = 'Reverts';
+      } else if (commit.type === 'docs') {
+        commit.type = 'Documentation';
+      } else {
+        commit.type = 'Other Changes';
+      }
+
+      return commit;
+    },
     commitsSort: ["subject", "scope"],
   },
 };
