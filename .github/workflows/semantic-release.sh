@@ -1,6 +1,7 @@
 #!/bin/bash
 # Make sure packages are installed
 npm install
+npm install --save-dev @semantic-release/release-notes-generator@latest
 
 # Determine if this is a pre-release or a release
 if [[ "$1" == "pre-release" ]]; then
