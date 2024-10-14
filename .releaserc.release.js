@@ -1,4 +1,3 @@
-// .releaserc.release.js
 module.exports = {
   branches: [{ name: "release", prerelease: false }],
   repositoryUrl: "https://github.com/djh00t/sops-pre-commit.git",
@@ -19,7 +18,7 @@ module.exports = {
       {
         assets: ["README.md", "pyproject.toml", "CHANGELOG.md"],
         message:
-          "ci(release): Update version to ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}",
+          "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}",
         pushRepo: "https://github.com/djh00t/sops-pre-commit.git",
         push: false,
       },
@@ -55,6 +54,29 @@ module.exports = {
     noteKeywords: ["BREAKING CHANGE", "BREAKING CHANGES"],
   },
   writerOpts: {
+    transform: (commit, context) => {
+      // Ensure the commit date is formatted correctly
+      if (commit.committerDate) {
+        commit.committerDate = new Date(commit.committerDate).toISOString();
+      }
+
+      // Transform commit types to human-friendly descriptions
+      if (commit.type === 'feat') {
+        commit.type = 'Features';
+      } else if (commit.type === 'fix') {
+        commit.type = 'Bug Fixes';
+      } else if (commit.type === 'perf') {
+        commit.type = 'Performance Improvements';
+      } else if (commit.type === 'revert') {
+        commit.type = 'Reverts';
+      } else if (commit.type === 'docs') {
+        commit.type = 'Documentation';
+      } else {
+        commit.type = 'Other Changes';
+      }
+
+      return commit;
+    },
     commitsSort: ["subject", "scope"],
   },
 };
