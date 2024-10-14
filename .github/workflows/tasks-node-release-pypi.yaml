@@ -1,0 +1,81 @@
+# .github/workflows/tasks-node.yml
+name: Node Tasks
+
+on:
+  workflow_call:
+    inputs:
+      stage:
+        description: 'Workflow Stage'
+        required: true
+        type: string
+    secrets:
+      OPENAI_API_KEY:
+        required: true
+      PYPI_USER_AGENT:
+        required: true
+      TEST_PYPI_USER_AGENT:
+        required: true
+
+jobs:
+  tasks_node:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4.1.7
+      with:
+        fetch-depth: 0
+
+    - name: Starting Stage
+      run: "echo Starting Node Stage: ${{ inputs.stage }}"
+
+    - name: Setup Environment
+      id: setup-env
+      run: |
+        # Run the setup-variables script
+        .github/workflows/tasks-setup-variables.sh
+
+        # Run the setup-git script
+        .github/workflows/tasks-setup-git.sh
+      env:
+        WORKFLOW_STAGE: ${{ inputs.stage }}
+        GH_TOKEN: ${{ github.token }}
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4.0.3
+      with:
+        node-version: "22.4.x"
+
+    - name: Load Node.js cache
+      uses: actions/cache@v4.0.2
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-cache
+        restore-keys: |
+          ${{ runner.os }}-node-cache-
+
+    - name: Install Node.js dependencies
+      run: |
+        npm install
+
+    - name: Run semantic-release & push to PyPi
+      run: .github/workflows/tasks-semantic-release.sh ${{ inputs.stage }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        PYPI_USER_AGENT: ${{ secrets.PYPI_USER_AGENT }}
+        TEST_PYPI_USER_AGENT: ${{ secrets.TEST_PYPI_USER_AGENT }}
+
+    - name: Commit changes
+      run: |
+        git add .
+        git commit -m "chore(${{ inputs.stage }}): ${{ env.RELEASE_VERSION }} [skip ci]" || echo "No changes to commit"
+        git push origin ${{ inputs.stage }}
+
+    - name: Create or Update PR
+      id: pr
+      run: |
+        # Run PR Create/Update script
+        .github/workflows/tasks-pr-create-update.sh
+      shell: bash
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        WORKFLOW_STAGE: ${{ inputs.stage }}
