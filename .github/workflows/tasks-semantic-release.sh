@@ -48,11 +48,11 @@ cmd_logger() {
 if [[ "$1" == "pre-release" ]]; then
     RELEASE_TYPE="pre-release"
     RELEASE_BRANCH_PREFIX="rc-v"
-    RELEASERC_FILE=".releaserc-pre-release.js"
+    RELEASERC_FILE=$(pwd)/".releaserc.pre-release.js"
 elif [[ "$1" == "release" ]]; then
     RELEASE_TYPE="release"
     RELEASE_BRANCH_PREFIX="v"
-    RELEASERC_FILE=".releaserc-release.js"
+    RELEASERC_FILE=$(pwd)/".releaserc.release.js"
 else
     echo "Invalid release type. Exiting..."
     exit 1

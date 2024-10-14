@@ -8,14 +8,14 @@ on:
 
 jobs:
   release_test_and_pr:
-    uses: .github/workflows/tasks-python-test-pr.yaml
+    uses: ./.github/workflows/tasks-python-test-pr.yaml
     with:
       stage: "release"
     secrets:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
   pre_release_release:
-    uses: .github/workflows/tasks-node-release-pypi.yaml
+    uses: ./.github/workflows/tasks-node-release-pypi.yaml
     with:
       stage: "release"
     secrets:
