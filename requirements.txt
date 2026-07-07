@@ -39,7 +39,7 @@ coverage[toml]==7.6.0
     # via
     #   -r requirements.in
     #   pytest-cov
-cryptography==43.0.0
+cryptography==48.0.1
     # via sops
 datetime==5.5
     # via -r requirements.in
@@ -51,7 +51,7 @@ distro==1.9.0
     # via openai
 dlint==0.15.0
     # via -r requirements.in
-filelock==3.15.4
+filelock==3.20.3
     # via virtualenv
 flake8==7.1.0
     # via
@@ -61,7 +61,7 @@ gitdb==4.0.11
     # via gitpython
 gitpython==3.1.43
     # via klingon-tools
-h11==0.14.0
+h11==0.16.0
     # via httpcore
 httpcore==1.0.5
     # via httpx
@@ -71,7 +71,7 @@ httpx==0.27.0
     #   openai
 identify==2.6.0
     # via pre-commit
-idna==3.7
+idna==3.15
     # via
     #   anyio
     #   httpx
@@ -82,7 +82,7 @@ isort==5.13.2
     # via
     #   -r requirements.in
     #   pylint
-jinja2==3.1.4
+jinja2==3.1.6
     # via -r requirements.in
 jmespath==1.0.1
     # via
@@ -158,7 +158,7 @@ pyyaml==6.0.1
     #   klingon-tools
     #   pre-commit
     #   yamllint
-requests==2.32.3
+requests==2.33.0
     # via klingon-tools
 ruamel-yaml==0.18.6
     # via
@@ -198,11 +198,11 @@ typing-extensions==4.12.2
     #   openai
     #   pydantic
     #   pydantic-core
-urllib3==2.2.2
+urllib3==2.7.0
     # via
     #   botocore
     #   requests
-virtualenv==20.26.3
+virtualenv==20.36.1
     # via pre-commit
 yamllint==1.35.1
     # via -r requirements.in
